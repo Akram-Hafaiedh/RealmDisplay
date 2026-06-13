@@ -385,7 +385,6 @@ bodyText:SetWidth(PANEL_W - 16)
 bodyText:SetHeight(0)
 bodyText:SetJustifyH("LEFT")
 bodyText:SetJustifyV("TOP")
-bodyText:SetWordWrap(false)
 
 -- 8f. SEPARATOR 2 (above footer) — positioned dynamically
 local sep2 = frame:CreateTexture(nil, "BACKGROUND")
