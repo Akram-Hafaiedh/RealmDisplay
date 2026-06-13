@@ -18,6 +18,7 @@ local DEFAULTS = {
 
 local optionsCategory
 local db  -- assigned in ADDON_LOADED
+local snapBtn
 local snapTex
 
 -- Lookup table to map normalized lowercased names back to their proper display names
@@ -233,14 +234,13 @@ headerLabel:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, -5)
 headerLabel:SetText("|cffFFD100REALM|r|cffAAAAAA WATCH|r")
 
 -- Snap-back button [↺]
-local snapBtn = CreateFrame("Button", nil, frame)
+snapBtn = CreateFrame("Button", nil, frame)
 snapBtn:SetSize(16, 16)
 snapBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, -3)
 
 snapTex = snapBtn:CreateTexture(nil, "ARTWORK")
 snapTex:SetAllPoints()
 snapTex:SetTexture("Interface\\Buttons\\UI-RefreshButton")
-snapTex:SetVertexColor(0.2, 0.2, 0.4)
 
 snapBtn:SetScript("OnClick", function()
     db.activeRealm = nil
@@ -256,7 +256,7 @@ snapBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 -- 8b. YOUR REALM BLOCK
 local yourDot = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 yourDot:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, Y_YOUR_TOP)
-yourDot:SetText("|TInterface\\COMMON\\Indicator-Green:10:10:0:0|t")
+yourDot:SetText("|TInterface\\FriendsFrame\\StatusIcon-Online:12:12:0:-1|t")
 
 local yourName = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 yourName:SetPoint("TOPLEFT", frame, "TOPLEFT", 22, Y_YOUR_TOP)
@@ -471,20 +471,16 @@ function RealmDisplayFrame_Update()
     yourName:SetText("|cffFFFFFF" .. currentRealm .. "|r")
     yourSub:SetText(string.format("|cff556688[%s]|r  |cff445566[%s]|r", yourLocale, region))
 
-    -- Snap button color: gold = browsing away, dim = home
+    -- Snap button visibility: show only when browsing away from home
     local activeIsHome = (not db.activeRealm) or (db.activeRealm == currentRealm)
-    if snapTex then
-        if activeIsHome then
-            snapTex:SetVertexColor(0.2, 0.2, 0.4)
-        else
-            snapTex:SetVertexColor(1.0, 0.82, 0.0)
-        end
+    if snapBtn then
+        snapBtn:SetShown(not activeIsHome)
     end
 
     -- Dropdown button label
     local activeRealm  = db.activeRealm or currentRealm
     local activeLocale = GetRealmLocale(activeRealm)
-    local pfx = (activeRealm == currentRealm) and "|TInterface\\COMMON\\Indicator-Green:8:8:0:0|t " or "|TInterface\\COMMON\\Indicator-Yellow:8:8:0:0|t "
+    local pfx = (activeRealm == currentRealm) and "|TInterface\\FriendsFrame\\StatusIcon-Online:10:10:0:-1|t " or "|TInterface\\FriendsFrame\\StatusIcon-Away:10:10:0:-1|t "
     dropLabel:SetText(
         pfx .. "|cffFFFFFF" .. activeRealm .. "|r  "
         .. string.format("|cff556688[%s]|r |cff445566[%s]|r", activeLocale, region)
@@ -527,7 +523,7 @@ function RealmDisplayFrame_Update()
     footerText:ClearAllPoints()
     footerText:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, footY)
     footerText:SetText(string.format(
-        "|TInterface\\COMMON\\Indicator-Gray:8:8:0:0|t |cff556688CONNECTED|r  |cffAAAAAA%d|r", lineCount
+        "|TInterface\\FriendsFrame\\StatusIcon-Offline:10:10:0:-1|t |cff556688CONNECTED|r  |cffAAAAAA%d|r", lineCount
     ))
 
     frame:SetSize(PANEL_W, totalH)
@@ -563,7 +559,7 @@ local function SetupMinimapButton()
 
     local broker = LDB:NewDataObject("RealmDisplay", {
         type  = "launcher",
-        icon  = "Interface\\Icons\\inv_misc_globe_01",
+        icon  = "Interface\\Icons\\INV_Misc_Map_01",
         label = "Realm Watch",
         OnClick = function(_, btn)
             if btn == "RightButton" then
@@ -577,7 +573,7 @@ local function SetupMinimapButton()
             tip:AddLine("|cffFFD100Realm Watch|r")
             tip:AddLine(" ")
             local cur, conn = BuildRealmData()
-            tip:AddLine("|TInterface\\COMMON\\Indicator-Green:10:10:0:0|t |cff44FF44" .. cur .. "|r  |cff888888(your realm)|r")
+            tip:AddLine("|TInterface\\FriendsFrame\\StatusIcon-Online:12:12:0:-1|t |cff44FF44" .. cur .. "|r  |cff888888(your realm)|r")
             for _, r in ipairs(conn) do
                 tip:AddLine("|cffCCCCCC  " .. r .. "|r")
             end
