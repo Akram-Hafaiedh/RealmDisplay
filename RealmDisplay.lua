@@ -580,9 +580,9 @@ function RealmDisplayFrame_Update()
     -- Update pin button texture and frame movability
     if pinTex then
         if db.pinned then
-            pinTex:SetTexture("Interface\\Buttons\\LockButton-Locked")
+            pinTex:SetTexture("Interface\\Icons\\INV_Misc_Lock_01")
         else
-            pinTex:SetTexture("Interface\\Buttons\\LockButton-Unlocked")
+            pinTex:SetTexture("Interface\\Icons\\INV_Misc_Key_03")
         end
     end
     frame:SetMovable(not db.pinned)
