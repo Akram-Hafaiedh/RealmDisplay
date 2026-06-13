@@ -14,12 +14,15 @@ local DEFAULTS = {
     relPoint     = nil,
     xOfs         = nil,
     yOfs         = nil,
+    pinned       = false,
 }
 
 local optionsCategory
 local db  -- assigned in ADDON_LOADED
 local snapBtn
 local snapTex
+local pinBtn
+local pinTex
 
 -- Reverse map: realm name -> list of its connected realms (built at ADDON_LOADED)
 local REALM_CLUSTER = {}
@@ -293,14 +296,20 @@ frame:SetBackdrop({
 frame:SetBackdropColor(0.04, 0.04, 0.10, 0.92)
 frame:SetBackdropBorderColor(0.25, 0.25, 0.45, 1)
 
-frame:SetScript("OnDragStart", frame.StartMoving)
+frame:SetScript("OnDragStart", function(self)
+    if not db.pinned then
+        self:StartMoving()
+    end
+end)
 frame:SetScript("OnDragStop", function(self)
-    self:StopMovingOrSizing()
-    local point, _, relPoint, x, y = self:GetPoint()
-    db.point    = point
-    db.relPoint = relPoint
-    db.xOfs     = x
-    db.yOfs     = y
+    if not db.pinned then
+        self:StopMovingOrSizing()
+        local point, _, relPoint, x, y = self:GetPoint()
+        db.point    = point
+        db.relPoint = relPoint
+        db.xOfs     = x
+        db.yOfs     = y
+    end
 end)
 
 -- 8a. HEADER BAR
@@ -316,7 +325,7 @@ headerLabel:SetText("|cffFFD100REALM|r|cffAAAAAA WATCH|r")
 -- Snap-back button [↺]
 snapBtn = CreateFrame("Button", nil, frame)
 snapBtn:SetSize(16, 16)
-snapBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, -3)
+snapBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -24, -3)
 
 snapTex = snapBtn:CreateTexture(nil, "ARTWORK")
 snapTex:SetAllPoints()
@@ -332,6 +341,33 @@ snapBtn:SetScript("OnEnter", function(self)
     GameTooltip:Show()
 end)
 snapBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+-- Pin button [🔒/🔓]
+pinBtn = CreateFrame("Button", nil, frame)
+pinBtn:SetSize(16, 16)
+pinBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, -3)
+
+pinTex = pinBtn:CreateTexture(nil, "ARTWORK")
+pinTex:SetAllPoints()
+
+pinBtn:SetScript("OnClick", function()
+    db.pinned = not db.pinned
+    frame:SetMovable(not db.pinned)
+    RealmDisplayFrame_Update()
+    if GameTooltip:GetOwner() == pinBtn then
+        pinBtn:GetScript("OnEnter")(pinBtn)
+    end
+end)
+pinBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+    if db.pinned then
+        GameTooltip:AddLine("Unlock position", 1, 1, 1)
+    else
+        GameTooltip:AddLine("Lock position", 1, 1, 1)
+    end
+    GameTooltip:Show()
+end)
+pinBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
 -- 8b. YOUR REALM BLOCK
 local yourDot = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -541,6 +577,16 @@ fadeAnim:SetSmoothing("OUT")
 function RealmDisplayFrame_Update()
     if not db then return end
 
+    -- Update pin button texture and frame movability
+    if pinTex then
+        if db.pinned then
+            pinTex:SetTexture("Interface\\Buttons\\LockButton-Locked")
+        else
+            pinTex:SetTexture("Interface\\Buttons\\LockButton-Unlocked")
+        end
+    end
+    frame:SetMovable(not db.pinned)
+
     local currentRealm, connected = BuildRealmData()
     local region = GetRegionTag()
 
@@ -707,6 +753,11 @@ SlashCmdList["REALMDISPLAY"] = function(msg)
         RealmDisplayFrame_Update()
         print("|cffFFD100RealmWatch:|r Ping " .. (db.showPing and "enabled" or "disabled"))
 
+    elseif cmd == "lock" or cmd == "pin" then
+        db.pinned = not db.pinned
+        RealmDisplayFrame_Update()
+        print("|cffFFD100RealmWatch:|r Position " .. (db.pinned and "locked" or "unlocked") .. ".")
+
     elseif cmd == "debug" then
         local cur, conn = BuildRealmData()
         print("Your realm: [" .. cur .. "]  Active: [" .. tostring(db.activeRealm) .. "]")
@@ -719,6 +770,7 @@ SlashCmdList["REALMDISPLAY"] = function(msg)
         print("  /rd toggle   — show/hide panel")
         print("  /rd reset    — reset panel position")
         print("  /rd home     — snap active realm back to yours")
+        print("  /rd lock     — toggle position lock (pin)")
         print("  /rd minimap  — toggle minimap button")
         print("  /rd ping     — toggle ping display")
         print("  /rd debug    — print debug info")
@@ -750,6 +802,17 @@ local function SetupOptionsMenu()
         "Show network latency next to your realm name.")
     pingSetting:SetValueChangedCallback(function(_, value)
         db.showPing = value
+        RealmDisplayFrame_Update()
+    end)
+
+    local pinSetting = Settings.RegisterAddOnSetting(
+        optionsCategory, "RealmDisplay_Pinned", "pinned",
+        db, type(false), "Lock Position", false
+    )
+    Settings.CreateCheckbox(optionsCategory, pinSetting,
+        "Lock the panel's position to prevent dragging.")
+    pinSetting:SetValueChangedCallback(function(_, value)
+        db.pinned = value
         RealmDisplayFrame_Update()
     end)
 
