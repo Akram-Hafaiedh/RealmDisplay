@@ -321,7 +321,7 @@ footerText:SetJustifyH("LEFT")
 -- ============================================================
 local dropPanel = CreateFrame("Frame", "RealmDisplayDropPanel", UIParent, "BackdropTemplate")
 dropPanel:SetWidth(PANEL_W - 12)
-dropPanel:SetFrameStrata("HIGH")
+dropPanel:SetFrameStrata("DIALOG")
 dropPanel:SetBackdrop({
     bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
     edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
@@ -348,9 +348,17 @@ searchBox:SetScript("OnTextChanged", function(self)
 end)
 searchBox:SetScript("OnEscapePressed", function() dropPanel:Hide() end)
 
-local scrollFrame = CreateFrame("ScrollFrame", nil, dropPanel, "UIPanelScrollFrameTemplate")
+local scrollFrame = CreateFrame("ScrollFrame", "RealmDisplayScrollFrame", dropPanel, "UIPanelScrollFrameTemplate")
 scrollFrame:SetPoint("TOPLEFT",     dropPanel, "TOPLEFT",    4, -30)
 scrollFrame:SetPoint("BOTTOMRIGHT", dropPanel, "BOTTOMRIGHT", -26, 4)
+scrollFrame:EnableMouseWheel(true)
+scrollFrame:SetScript("OnMouseWheel", function(self, delta)
+    local cur = self:GetVerticalScroll()
+    local maxVal = self:GetVerticalScrollRange()
+    local newVal = cur - (delta * 18)
+    newVal = math.max(0, math.min(newVal, maxVal))
+    self:SetVerticalScroll(newVal)
+end)
 
 local scrollChild = CreateFrame("Frame", nil, scrollFrame)
 scrollChild:SetWidth(PANEL_W - 40)
@@ -429,7 +437,7 @@ end)
 
 local clickCatcher = CreateFrame("Frame", nil, UIParent)
 clickCatcher:SetAllPoints()
-clickCatcher:SetFrameStrata("DIALOG")
+clickCatcher:SetFrameStrata("HIGH")
 clickCatcher:Hide()
 clickCatcher:SetScript("OnMouseDown", function()
     dropPanel:Hide()
