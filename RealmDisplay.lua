@@ -21,6 +21,9 @@ local db  -- assigned in ADDON_LOADED
 local snapBtn
 local snapTex
 
+-- Reverse map: realm name -> list of its connected realms (built at ADDON_LOADED)
+local REALM_CLUSTER = {}
+
 -- Lookup table to map normalized lowercased names back to their proper display names
 local NORMALIZED_TO_PROPER = {}
 
@@ -117,6 +120,74 @@ local REALM_LOCALE = {
     ["Quel'Thalas"]="ES",
 }
 
+-- ============================================================
+-- 2b. EU CONNECTED REALM CLUSTERS (static, for cross-realm lookup)
+--     Each inner table = one connected realm group.
+--     Source: Blizzard connected realms (EU), approximate.
+-- ============================================================
+local EU_CONNECTED_CLUSTERS = {
+    -- EU English
+    {"Aegwynn","Bonechewer","Daggerspine","Gurubashi","Hakkar"},
+    {"Agamaggan","Bloodscalp","Crushridge","Emeriss","Sunstrider"},
+    {"Aggramar","Hellfire"},
+    {"Al'Akir","Skullcrusher","Xavius"},
+    {"Alonsus","Ahn'Qiraj","Dragonblight"},
+    {"Aerie Peak","Bronzebeard"},
+    {"Arathor","Hellscream"},
+    {"Azjol-Nerub","Quel'Thalas"},
+    {"Azuremyst","Stormrage"},
+    {"Bladefist","Zenedar","Frostwhisper"},
+    {"Blade's Edge","Eonar","Vek'nilash"},
+    {"Bronze Dragonflight","Nordrassil"},
+    {"Burning Blade","The Sha'tar","Moonglade"},
+    {"Chamber of Aspects","Deathwing"},
+    {"Darkspear","Kor'gall","Executus","Shattered Hand","Bloodfeather","Terokkar","Saurfang","Burning Steppes"},
+    {"Darksorrow","Genjuros","Neptulon"},
+    {"Dentarg","Tarren Mill"},
+    {"Dragonmaw","Spinebreaker","Stormreaver","Vashj"},
+    {"Earthen Ring","Sporeggar","Steamwheedle Cartel"},
+    {"Emerald Dream","Terenas"},
+    {"Ghostlands","Bloodhoof"},
+    {"Grim Batol","Aggra"},
+    {"Haomarush","Stormscale"},
+    {"Hyjal","Shadowsong"},
+    {"Karazhan","Lightning's Blade","Talnivarr","The Maelstrom","Twilight's Hammer","Deathwing"},
+    {"Kilrogg","Nagrand","Runetotem"},
+    {"Laughing Skull","Trollbane","Wildhammer"},
+    {"Lightbringer","Mazrigos"},
+    {"Ravenholdt","Moonglade","The Venture Co"},
+    {"Defias Brotherhood","Ravenholdt","The Maelstrom","The Venture Co","Twisting Nether"},
+    {"Doomhammer","Turalyon"},
+    {"Frostmane","Tichondrius"},
+    {"Perenolde","Celebras"},
+    {"Thunderhorn","Kilrogg"},
+    -- EU French
+    {"Archimonde","Cho'gall","Sargeras"},
+    {"Chants \195\169ternels","Conf\195\169r\195\169rie du Thorium","Conseil des Ombres","Culte de la Rive noire","Les Clairvoyants","Les Sentinelles","Temple noir"},
+    {"Dalaran","Ner'zhul","Rashgarroth","Throk'Feroth","Varimathras"},
+    {"Drek'Thar","Elune","Khaz Modan","Kirin Tor","La Croisade \195\169carlate","Naxxramas","Suramar"},
+    {"Illidan","Kael'thas","Ysondre"},
+    -- EU German
+    {"Antonidas","Blackmoore"},
+    {"Arthas","Azshara"},
+    {"Anetheron","Baelgun","Blackhand","Nathrezim","Nefarian","Onyxia","Terrordar","Zuluhed"},
+    {"Anub'arak","Celebras","Destromath","Forscherliga","Taerar"},
+    {"Dun Morogh","Madmortem"},
+    {"Echsenkessel","Nethersturm"},
+    {"Eredar","Kil'jaeden","Mannoroth","Nozdormu","Shattrath"},
+    {"Frostwolf","Ysera"},
+    {"Kargath","Lordaeron","Mal'Ganis","Rexxar","Thrall","Uldaman"},
+    {"Gorgonnash","Gurubashi"},
+    -- EU Spanish
+    {"C'Thun","Shen'dralar","Tyrande","Uldum","Zul'jin"},
+    {"Colinas Pardas","Los Errantes","Malfurion","Minahonda","Sanguino"},
+    -- EU Russian
+    {"Azuregos","Galakrond"},
+    -- NA Portuguese
+    {"Gallywix","Goldrinn"},
+    {"Nemesis","Tol Barad"},
+}
+
 local function GetRealmLocale(realmName)
     local properName = GetProperRealmName(realmName)
     return REALM_LOCALE[properName] or "EN"
@@ -144,20 +215,29 @@ end
 -- 5. REALM DATA BUILDER
 -- ============================================================
 local function BuildRealmData()
-    local current = GetRealmName()
-    local seen    = { [GetNormalizedName(current)] = true }
-    local connected = {}
-    local auto = GetAutoCompleteRealms()
-    if auto then
-        for _, r in ipairs(auto) do
-            local norm = GetNormalizedName(r)
-            if not seen[norm] then
-                seen[norm] = true
-                connected[#connected + 1] = GetProperRealmName(r)
+    local current     = GetRealmName()
+    local activeRealm = (db and db.activeRealm) or current
+
+    -- For the player's own realm use the live API — most accurate
+    if GetNormalizedName(activeRealm) == GetNormalizedName(current) then
+        local seen      = { [GetNormalizedName(current)] = true }
+        local connected = {}
+        local auto = GetAutoCompleteRealms()
+        if auto then
+            for _, r in ipairs(auto) do
+                local norm = GetNormalizedName(r)
+                if not seen[norm] then
+                    seen[norm] = true
+                    connected[#connected + 1] = GetProperRealmName(r)
+                end
             end
         end
+        return current, connected
     end
-    return current, connected
+
+    -- For any other selected realm use the static cluster table
+    local cluster = REALM_CLUSTER[activeRealm] or {}
+    return current, cluster
 end
 
 -- ============================================================
@@ -494,13 +574,7 @@ function RealmDisplayFrame_Update()
         .. string.format("|cff556688[%s]|r |cff445566[%s]|r", activeLocale, region)
     )
 
-    -- Build full cluster list for dropdown (current realm first, then connected)
-    allDropRealms = { currentRealm }
-    for _, r in ipairs(connected) do
-        allDropRealms[#allDropRealms + 1] = r
-    end
-
-    -- Body: connected realms only (NOT current realm — it has its own row)
+    -- Body: connected realms for the SELECTED realm (from BuildRealmData)
     local lines = {}
     for _, r in ipairs(connected) do
         local locale   = GetRealmLocale(r)
@@ -706,10 +780,28 @@ frame:RegisterEvent("PLAYER_LOGIN")
 
 frame:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == "RealmDisplay" then
-        -- Initialize the normalized lookup table
+        -- Build NORMALIZED_TO_PROPER: prefer spaced names over run-together ones
         for name, _ in pairs(REALM_LOCALE) do
             local norm = name:gsub("[%s'%-]", ""):lower()
-            NORMALIZED_TO_PROPER[norm] = name
+            if not NORMALIZED_TO_PROPER[norm] or name:find(" ") then
+                NORMALIZED_TO_PROPER[norm] = name
+            end
+        end
+
+        -- Build REALM_CLUSTER reverse map from EU_CONNECTED_CLUSTERS
+        for _, cluster in ipairs(EU_CONNECTED_CLUSTERS) do
+            for i, r in ipairs(cluster) do
+                local others = {}
+                for j, other in ipairs(cluster) do
+                    if j ~= i then others[#others + 1] = other end
+                end
+                REALM_CLUSTER[r] = others
+                -- Also map the normalized form so lookups are robust
+                local norm = GetNormalizedName(r)
+                if NORMALIZED_TO_PROPER[norm] and NORMALIZED_TO_PROPER[norm] ~= r then
+                    REALM_CLUSTER[NORMALIZED_TO_PROPER[norm]] = others
+                end
+            end
         end
 
         RealmDisplayDB = RealmDisplayDB or {}
@@ -730,6 +822,20 @@ frame:SetScript("OnEvent", function(self, event, arg1)
             frame:ClearAllPoints()
             frame:SetPoint(db.point, UIParent, db.relPoint, db.xOfs, db.yOfs)
         end
+
+        -- Build the full dropdown realm list once: all unique proper realm names, sorted A-Z
+        local seenNorm = {}
+        local rawList  = {}
+        for name, _ in pairs(REALM_LOCALE) do
+            local norm = GetNormalizedName(name)
+            if not seenNorm[norm] then
+                seenNorm[norm] = true
+                rawList[#rawList + 1] = NORMALIZED_TO_PROPER[norm] or name
+            end
+        end
+        table.sort(rawList)
+        allDropRealms = rawList
+
         frame:SetShown(db.showPanel)
         RealmDisplayFrame_Update()
         fadeGroup:Play()
