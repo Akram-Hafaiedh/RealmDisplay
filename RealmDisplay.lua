@@ -15,6 +15,19 @@ local DEFAULTS = {
     xOfs         = nil,
     yOfs         = nil,
     pinned       = false,
+    bgColorR     = 0.04,
+    bgColorG     = 0.04,
+    bgColorB     = 0.10,
+    bgColorA     = 0.92,
+    fontPath     = "Fonts\\FRIZQT__.TTF",
+    fontHeight   = 11,
+    textColorR   = 0.80,
+    textColorG   = 0.80,
+    textColorB   = 0.80,
+    accentColorR = 0.25,
+    accentColorG = 0.25,
+    accentColorB = 0.45,
+    accentColorA = 1.0,
 }
 
 local optionsCategory
@@ -23,6 +36,10 @@ local snapBtn
 local snapTex
 local pinBtn
 local pinTex
+local cfgBtn
+local cfgTex
+local themeBtn
+local themeTex
 
 -- Reverse map: realm name -> list of its connected realms (built at ADDON_LOADED)
 local REALM_CLUSTER = {}
@@ -60,7 +77,78 @@ end
 -- 2. LOCALE LOOKUP TABLE
 -- ============================================================
 local REALM_LOCALE = {
+
+    -- --------------------------------------------------------
+    -- NA / US English
+    -- --------------------------------------------------------
+    ["Aegwynn"]="EN",["Agamaggan"]="EN",["Aggramar"]="EN",["Akama"]="EN",
+    ["Alexstrasza"]="EN",["Alleria"]="EN",["Altar of Storms"]="EN",
+    ["Alterac Mountains"]="EN",["Aman'Thul"]="EN",["Andorhal"]="EN",
+    ["Anetheron"]="EN",["Antonidas"]="EN",["Anub'arak"]="EN",["Anvilmar"]="EN",
+    ["Arathor"]="EN",["Archimonde"]="EN",["Area 52"]="EN",["Argent Dawn"]="EN",
+    ["Arthas"]="EN",["Arygos"]="EN",["Auchindoun"]="EN",["Azgalor"]="EN",
+    ["Azjol-Nerub"]="EN",["Azralon"]="PT",["Azshara"]="EN",["Azuremyst"]="EN",
+    ["Baelgun"]="EN",["Balnazzar"]="EN",["Barthilas"]="EN",["Black Dragonflight"]="EN",
+    ["Blackhand"]="EN",["Blackrock"]="EN",["Blackwater Raiders"]="EN",
+    ["Blackwing Lair"]="EN",["Blade's Edge"]="EN",["Bladefist"]="EN",
+    ["Bleeding Hollow"]="EN",["Blood Furnace"]="EN",["Bloodhoof"]="EN",
+    ["Bloodscalp"]="EN",["Bonechewer"]="EN",["Borean Tundra"]="EN",
+    ["Boulderfist"]="EN",["Bronze Dragonflight"]="EN",["Bronzebeard"]="EN",
+    ["Burning Blade"]="EN",["Burning Legion"]="EN",["Caelestrasz"]="EN",
+    ["Cairne"]="EN",["Cenarion Circle"]="EN",["Cenarion Expedition"]="EN",
+    ["Cho'gall"]="EN",["Chromaggus"]="EN",["Coilfang"]="EN",["Crushridge"]="EN",
+    ["Daggerspine"]="EN",["Dalaran"]="EN",["Dalvengyr"]="EN",["Dark Iron"]="EN",
+    ["Darkspear"]="EN",["Darrowmere"]="EN",["Dawnbringer"]="EN",["Deathwing"]="EN",
+    ["Demon Soul"]="EN",["Dentarg"]="EN",["Destromath"]="EN",["Dethecus"]="EN",
+    ["Detheroc"]="EN",["Doomhammer"]="EN",["Dragonblight"]="EN",["Dragonmaw"]="EN",
+    ["Drak'Tharon"]="EN",["Drak'thul"]="EN",["Draka"]="EN",["Drakkari"]="EN",
+    ["Dreadmaul"]="EN",["Dunemaul"]="EN",["Durotan"]="EN",["Duskwood"]="EN",
+    ["Earthen Ring"]="EN",["Echo Isles"]="EN",["Eitrigg"]="EN",["Eldre'Thalas"]="EN",
+    ["Elune"]="EN",["Emerald Dream"]="EN",["Eonar"]="EN",["Eredar"]="EN",
+    ["Executus"]="EN",["Exodar"]="EN",["Farstriders"]="EN",["Feathermoon"]="EN",
+    ["Fenris"]="EN",["Firetree"]="EN",["Fizzcrank"]="EN",["Frostmane"]="EN",
+    ["Frostwolf"]="EN",["Gallywix"]="PT",["Garithos"]="EN",["Garona"]="EN",
+    ["Garrosh"]="EN",["Ghostlands"]="EN",["Gilneas"]="EN",["Gnomeregan"]="EN",
+    ["Goldrinn"]="PT",["Gorefiend"]="EN",["Gorgonnash"]="EN",["Greymane"]="EN",
+    ["Gul'dan"]="EN",["Gundrak"]="EN",["Gurubashi"]="EN",["Hakkar"]="EN",
+    ["Haomarush"]="EN",["Hellscream"]="EN",["Hydraxis"]="EN",["Hyjal"]="EN",
+    ["Icecrown"]="EN",["Illidan"]="EN",["Jaedenar"]="EN",["Jubei'Thos"]="EN",
+    ["Kael'thas"]="EN",["Kalecgos"]="EN",["Kargath"]="EN",["Kel'Thuzad"]="EN",
+    ["Khadgar"]="EN",["Khaz Modan"]="EN",["Khaz'goroth"]="EN",["Kil'jaeden"]="EN",
+    ["Kilrogg"]="EN",["Kirin Tor"]="EN",["Korgath"]="EN",["Kul Tiras"]="EN",
+    ["Kurinnaxx"]="EN",["Laughing Skull"]="EN",["Lethon"]="EN",["Lightbringer"]="EN",
+    ["Lightning's Blade"]="EN",["Lightninghoof"]="EN",["Loremaster"]="EN",
+    ["Lothar"]="EN",["Madoran"]="EN",["Maelstrom"]="EN",["Malfurion"]="EN",
+    ["Malganis"]="EN",["Malorne"]="EN",["Malygos"]="EN",["Mannoroth"]="EN",
+    ["Medivh"]="EN",["Misha"]="EN",["Mok'Nathal"]="EN",["Moon Guard"]="EN",
+    ["Moonrunner"]="EN",["Mug'thol"]="EN",["Muradin"]="EN",["Nagrand"]="EN",
+    ["Nathrezim"]="EN",["Naxxramas"]="EN",["Nazgrel"]="EN",["Nazjatar"]="EN",
+    ["Nemesis"]="PT",["Ner'zhul"]="EN",["Norgannon"]="EN",["Nordrassil"]="EN",
+    ["Onyxia"]="EN",["Perenolde"]="EN",["Proudmoore"]="EN",["Quel'Thalas"]="ES",
+    ["Quel'dorei"]="EN",["Ragnaros"]="EN",["Ravencrest"]="EN",["Ravenholdt"]="EN",
+    ["Rexxar"]="EN",["Rivendare"]="EN",["Runetotem"]="EN",["Saurfang"]="EN",
+    ["Scarlet Crusade"]="EN",["Scilla"]="EN",["Sen'jin"]="EN",["Sentinels"]="EN",
+    ["Shadow Council"]="EN",["Shadowmoon"]="EN",["Shadowsong"]="EN",
+    ["Shandris"]="EN",["Shattered Halls"]="EN",["Shattered Hand"]="EN",
+    ["Silver Hand"]="EN",["Silvermoon"]="EN",["Sisters of Elune"]="EN",
+    ["Skullcrusher"]="EN",["Skywall"]="EN",["Smolderthorn"]="EN",
+    ["Spinebreaker"]="EN",["Spirestone"]="EN",["Staghelm"]="EN",
+    ["Steamwheedle Cartel"]="EN",["Stonemaul"]="EN",["Stormrage"]="EN",
+    ["Stormreaver"]="EN",["Stormscale"]="EN",["Suramar"]="EN",["Tanaris"]="EN",
+    ["Terenas"]="EN",["Terokkar"]="EN",["Thaurissan"]="EN",["The Forgotten Coast"]="EN",
+    ["The Scryers"]="EN",["The Underbog"]="EN",["The Venture Co"]="EN",
+    ["Thorium Brotherhood"]="EN",["Thrall"]="EN",["Thunderhorn"]="EN",
+    ["Thunderlord"]="EN",["Tichondrius"]="EN",["Tol Barad"]="PT",
+    ["Trollbane"]="EN",["Turalyon"]="EN",["Twisting Nether"]="EN",
+    ["Uldaman"]="EN",["Uldum"]="EN",["Undermine"]="EN",["Uther"]="EN",
+    ["Vashj"]="EN",["Vek'nilash"]="EN",["Velen"]="EN",["Whisperwind"]="EN",
+    ["Wildhammer"]="EN",["Windrunner"]="EN",["Winterhoof"]="EN",
+    ["Wyrmrest Accord"]="EN",["Xavius"]="EN",["Ysera"]="EN",["Ysondre"]="EN",
+    ["Zangarmarsh"]="EN",["Zul'jin"]="EN",["Zuluhed"]="EN",
+    -- --------------------------------------------------------
     -- EU English
+    -- --------------------------------------------------------
+
     ["Aegwynn"]="EN",["Aerie Peak"]="EN",["Agamaggan"]="EN",["Aggramar"]="EN",
     ["Ahn'Qiraj"]="EN",["Al'Akir"]="EN",["Alonsus"]="EN",["Arathor"]="EN",
     ["Argent Dawn"]="EN",["Azjol-Nerub"]="EN",["Azuremyst"]="EN",["Bladefist"]="EN",
@@ -191,9 +279,213 @@ local EU_CONNECTED_CLUSTERS = {
     {"Nemesis","Tol Barad"},
 }
 
+local NA_CONNECTED_CLUSTERS = {
+    -- US English — source: Blizzard connected realms US (approximate)
+    {"Aegwynn","Bonechewer","Daggerspine","Gurubashi","Hakkar"},
+    {"Agamaggan","Archimonde","Jaedenar","The Underbog"},
+    {"Aggramar","Fizzcrank"},
+    {"Akama","Dragonmaw","Mug'thol"},
+    {"Alexstrasza","Terokkar"},
+    {"Altar of Storms","Anetheron","Magtheridon","Ysondre"},
+    {"Alterac Mountains","Balnazzar","Gorgonnash","The Forgotten Coast","Warsong"},
+    {"Andorhal","Scilla","Ursin","Zuluhed"},
+    {"Antonidas","Uldum"},
+    {"Anvilmar","Undermine"},
+    {"Arathor","Drenden"},
+    {"Area 52","Garrosh"},
+    {"Argent Dawn","The Scryers"},
+    {"Arygos","Llane"},
+    {"Auchindoun","Laughing Skull","Malorne"},
+    {"Azgalor","Azshara","Destromath","Thunderlord"},
+    {"Azjol-Nerub","Khaz Modan"},
+    {"Azuremyst","Staghelm"},
+    {"Baelgun","Doomhammer"},
+    {"Barthilas"},   -- OCE solo
+    {"Black Dragonflight","Gul'dan","Skullcrusher"},
+    {"Blackhand","Galakrond"},
+    {"Blackwater Raiders","Shadow Council"},
+    {"Blackwing Lair","Dethecus","Detheroc","Haomarush","Lethon","Shadowmoon"},
+    {"Blade's Edge","Thunderhorn"},
+    {"Bladefist","Kul Tiras"},
+    {"Bleeding Hollow"},  -- large solo
+    {"Blood Furnace","Mannoroth","Nazjatar"},
+    {"Bloodhoof","Duskwood"},
+    {"Bloodscalp","Boulderfist","Dunemaul","Maiev","Stonemaul"},
+    {"Bonechewer","Aegwynn","Daggerspine","Gurubashi","Hakkar"},
+    {"Borean Tundra","Shadowsong"},
+    {"Bronzebeard","Shandris"},
+    {"Burning Blade","Lightning's Blade","Onyxia"},
+    {"Burning Legion","Agamaggan","Jaedenar","The Underbog"},
+    {"Caelestrasz","Nagrand"},          -- OCE
+    {"Cairne","Perenolde"},
+    {"Cenarion Circle","Sisters of Elune"},
+    {"Cenarion Expedition","Hydraxis"},
+    {"Cho'gall","Auchindoun","Laughing Skull"},
+    {"Chromaggus","Garithos","Nathrezim","Smolderthorn"},
+    {"Coilfang","Dark Iron","Dalvengyr","Demon Soul"},
+    {"Crushridge","Anub'arak","Chromaggus","Garithos","Nathrezim","Smolderthorn"},
+    {"Daggerspine","Aegwynn","Bonechewer","Gurubashi","Hakkar"},
+    {"Dalaran","Krasus"},
+    {"Dark Iron","Coilfang","Dalvengyr","Demon Soul"},
+    {"Darkspear"},   -- large solo
+    {"Darrowmere","Windrunner"},
+    {"Dawnbringer","Madoran"},
+    {"Deathwing","Executus","Kalecgos","Shattered Halls"},
+    {"Dentarg","Whisperwind"},
+    {"Detheroc","Blackwing Lair","Dethecus","Haomarush","Lethon","Shadowmoon"},
+    {"Drak'Tharon","Firetree","Malorne","Rivendare","Spirestone"},
+    {"Drak'thul","Skywall"},
+    {"Draka","Suramar"},
+    {"Drakkari","Mok'Nathal"},
+    {"Dreadmaul","Thaurissan"},         -- OCE
+    {"Dunemaul","Bloodscalp","Boulderfist","Maiev","Stonemaul"},
+    {"Durotan","Ysera"},
+    {"Earthen Ring","Velen"},
+    {"Echo Isles","Draenor"},
+    {"Eitrigg","Shu'halo"},
+    {"Eldre'Thalas","Korialstrasz"},
+    {"Elune","Gilneas"},
+    {"Emerald Dream"},    -- RP large solo
+    {"Farstriders","Silver Hand","Thorium Brotherhood"},
+    {"Feathermoon","Scarlet Crusade"},
+    {"Fenris","Dragonblight"},
+    {"Firetree","Drak'Tharon","Malorne","Rivendare","Spirestone"},
+    {"Frostmane","Ner'zhul","Tortheldrin"},
+    {"Frostwolf","Gurubashi"},
+    {"Garithos","Chromaggus","Nathrezim","Smolderthorn"},
+    {"Garona","Icecrown"},
+    {"Ghostlands","Kael'thas"},
+    {"Gnomeregan","Moonrunner"},
+    {"Gorefiend","Spinebreaker","Wildhammer"},
+    {"Greymane","Tanaris"},
+    {"Gundrak","Jubei'Thos"},           -- OCE
+    {"Gurubashi","Aegwynn","Bonechewer","Daggerspine","Hakkar"},
+    {"Hellscream","Zangarmarsh"},
+    {"Hydraxis","Cenarion Expedition"},
+    {"Hyjal"},    -- large solo
+    {"Icecrown","Garona"},
+    {"Illidan"},  -- large solo
+    {"Jubei'Thos","Gundrak"},           -- OCE
+    {"Kel'Thuzad"},   -- large solo
+    {"Khadgar","Bronzebeard","Shandris"},
+    {"Khaz'goroth","Dreadmaul","Thaurissan"},   -- OCE
+    {"Kil'jaeden"},   -- large solo
+    {"Kilrogg","Winterhoof"},
+    {"Korgath"},   -- medium solo
+    {"Krasus","Dalaran"},
+    {"Kul Tiras","Bladefist"},
+    {"Kurinnaxx","Smolderthorn"},
+    {"Laughing Skull","Auchindoun","Cho'gall"},
+    {"Lethon","Blackwing Lair","Dethecus","Detheroc","Haomarush","Shadowmoon"},
+    {"Lightbringer"},    -- large solo
+    {"Lightning's Blade","Burning Blade","Onyxia"},
+    {"Lightninghoof","Maelstrom","The Venture Co"},
+    {"Llane","Arygos"},
+    {"Loremaster","Suramar"},
+    {"Lothar","Malfurion"},
+    {"Madoran","Dawnbringer"},
+    {"Maelstrom","Lightninghoof","The Venture Co"},
+    {"Malfurion","Lothar"},
+    {"Malganis"},   -- large solo
+    {"Malygos","Icecrown"},
+    {"Mannoroth","Blood Furnace","Nazjatar"},
+    {"Medivh","Exodar"},
+    {"Misha","Rexxar"},
+    {"Mok'Nathal","Drakkari"},
+    {"Moon Guard"},   -- RP large solo
+    {"Moonrunner","Gnomeregan"},
+    {"Muradin","Nordrassil"},
+    {"Nagrand","Caelestrasz"},          -- OCE
+    {"Nathrezim","Chromaggus","Garithos","Smolderthorn"},
+    {"Nazgrel","Nesingwary","Vek'nilash"},
+    {"Ner'zhul","Frostmane","Tortheldrin"},
+    {"Norgannon","Kargath"},
+    {"Onyxia","Burning Blade","Lightning's Blade"},
+    {"Perenolde","Cairne"},
+    {"Proudmoore"},   -- large solo
+    {"Quel'dorei","Sen'jin"},
+    {"Ragnaros","Balnazzar"},
+    {"Ravenholdt","Twisting Nether"},
+    {"Rexxar","Misha"},
+    {"Rivendare","Drak'Tharon","Firetree","Malorne","Spirestone"},
+    {"Runetotem","Uther"},
+    {"Scarlet Crusade","Feathermoon"},
+    {"Scilla","Andorhal","Ursin","Zuluhed"},
+    {"Sen'jin","Quel'dorei"},
+    {"Sentinels","Kirin Tor"},
+    {"Shadow Council","Blackwater Raiders"},
+    {"Shadowmoon","Blackwing Lair","Dethecus","Detheroc","Haomarush","Lethon"},
+    {"Shadowsong","Borean Tundra"},
+    {"Shandris","Bronzebeard"},
+    {"Shattered Halls","Deathwing","Executus","Kalecgos"},
+    {"Silver Hand","Farstriders","Thorium Brotherhood"},
+    {"Sisters of Elune","Cenarion Circle"},
+    {"Skullcrusher","Black Dragonflight","Gul'dan"},
+    {"Skywall","Drak'thul"},
+    {"Smolderthorn","Chromaggus","Garithos","Nathrezim"},
+    {"Spirestone","Drak'Tharon","Firetree","Malorne","Rivendare"},
+    {"Staghelm","Azuremyst"},
+    {"Steamwheedle Cartel","Venture Co","Norgannon","Kargath"},
+    {"Stonemaul","Bloodscalp","Boulderfist","Dunemaul","Maiev"},
+    {"Stormrage"},   -- large solo
+    {"Stormreaver","Executus"},
+    {"Stormscale","Drak'Tharon"},
+    {"Suramar","Draka"},
+    {"Tanaris","Greymane"},
+    {"Terenas","Hydraxis"},
+    {"Thaurissan","Dreadmaul"},         -- OCE
+    {"The Forgotten Coast","Alterac Mountains","Balnazzar","Gorgonnash","Warsong"},
+    {"The Scryers","Argent Dawn"},
+    {"The Underbog","Agamaggan","Archimonde","Jaedenar"},
+    {"The Venture Co","Lightninghoof","Maelstrom"},
+    {"Thorium Brotherhood","Farstriders","Silver Hand"},
+    {"Thrall"},   -- large solo
+    {"Thunderhorn","Blade's Edge"},
+    {"Thunderlord","Azgalor","Azshara","Destromath"},
+    {"Tichondrius"},   -- large solo
+    {"Trollbane","Malfurion"},
+    {"Turalyon"},   -- medium solo
+    {"Twisting Nether","Ravenholdt"},
+    {"Uldaman","Ravencrest"},
+    {"Undermine","Anvilmar"},
+    {"Ursin","Andorhal","Scilla","Zuluhed"},
+    {"Uther","Runetotem"},
+    {"Vashj","Frostwolf"},
+    {"Velen","Earthen Ring"},
+    {"Whisperwind","Dentarg"},
+    {"Wildhammer","Gorefiend","Spinebreaker"},
+    {"Windrunner","Darrowmere"},
+    {"Winterhoof","Kilrogg"},
+    {"Wyrmrest Accord"},   -- RP large solo
+    {"Ysera","Durotan"},
+    {"Ysondre","Altar of Storms","Anetheron","Magtheridon"},
+    {"Zangarmarsh","Hellscream"},
+    {"Zuluhed","Andorhal","Scilla","Ursin"},
+    -- NA Portuguese (Brazil)
+    {"Gallywix","Goldrinn"},
+    {"Nemesis","Tol Barad"},
+    -- NA Spanish (Latin America)
+    {"Quel'Thalas"},   -- solo
+}
+
+
 local function GetRealmLocale(realmName)
     local properName = GetProperRealmName(realmName)
     return REALM_LOCALE[properName] or "EN"
+end
+
+local function GetLocaleFlag(locale)
+    if locale and (locale == "EN" or locale == "FR" or locale == "DE" or locale == "ES" or locale == "RU" or locale == "PT") then
+        return "|TInterface\\AddOns\\RealmDisplay\\Media\\Flags\\" .. locale .. ".png:10:14:0:1|t"
+    end
+    return locale and ("[" .. locale .. "]") or ""
+end
+
+local function GetRegionFlag(region)
+    if region and (region == "EU" or region == "US" or region == "KR" or region == "TW" or region == "CN") then
+        return "|TInterface\\AddOns\\RealmDisplay\\Media\\Flags\\" .. region .. ".png:10:14:0:1|t"
+    end
+    return region and ("[" .. region .. "]") or ""
 end
 
 -- ============================================================
@@ -212,6 +504,17 @@ local function GetPingColor(ms)
     if ms < 80  then return "|cff44FF44" end
     if ms < 180 then return "|cffFFD100" end
     return "|cffFF4444"
+end
+
+local function SetFontStringShadow(fs, enabled)
+    if not fs then return end
+    if enabled then
+        fs:SetShadowColor(0, 0, 0, 1)
+        fs:SetShadowOffset(1, -1)
+    else
+        fs:SetShadowColor(0, 0, 0, 0)
+        fs:SetShadowOffset(0, 0)
+    end
 end
 
 -- ============================================================
@@ -262,13 +565,12 @@ StaticPopupDialogs["REALMDISPLAY_RELOAD"] = {
 local PANEL_W    = 270
 local ROW_H      = 20   -- height per realm line in body
 local HEADER_H   = 22   -- header bar
-local YOUR_H     = 36   -- your realm block (name + sub line)
+local YOUR_H     = 22   -- your realm block (single line layout)
 local DROP_H     = 22   -- dropdown button
 local GAP        = 4    -- padding between sections
 local SEP_H      = 1    -- separator
 local FOOTER_H   = 18   -- footer row
 
--- Fixed y-offsets (negative = downward from top)
 local Y_HEADER_BOT  = -HEADER_H                          -- -22
 local Y_YOUR_TOP    = Y_HEADER_BOT - GAP                 -- -26
 local Y_YOUR_BOT    = Y_YOUR_TOP - YOUR_H                -- -62
@@ -329,7 +631,7 @@ snapBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -24, -3)
 
 snapTex = snapBtn:CreateTexture(nil, "ARTWORK")
 snapTex:SetAllPoints()
-snapTex:SetTexture("Interface\\Buttons\\UI-RefreshButton")
+snapTex:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\refresh.png")
 
 snapBtn:SetScript("OnClick", function()
     db.activeRealm = nil
@@ -369,20 +671,103 @@ pinBtn:SetScript("OnEnter", function(self)
 end)
 pinBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
+-- Settings button [⚙]
+cfgBtn = CreateFrame("Button", nil, frame)
+cfgBtn:SetSize(16, 16)
+cfgBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -42, -3)
+
+cfgTex = cfgBtn:CreateTexture(nil, "ARTWORK")
+cfgTex:SetAllPoints()
+cfgTex:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\settings.png")
+
+cfgBtn:SetScript("OnClick", function()
+    if RealmDisplayConfigFrame then
+        if RealmDisplayConfigFrame:IsShown() then
+            RealmDisplayConfigFrame:Hide()
+        else
+            RealmDisplayConfigFrame:ClearAllPoints()
+            RealmDisplayConfigFrame:SetPoint("TOPLEFT", frame, "TOPRIGHT", 5, 0)
+            RealmDisplayConfigFrame:Show()
+        end
+    end
+end)
+cfgBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+    GameTooltip:AddLine("Appearance Settings", 1, 1, 1)
+    GameTooltip:Show()
+end)
+cfgBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+-- Theme Toggle Button [☀️/🌙]
+themeBtn = CreateFrame("Button", nil, frame)
+themeBtn:SetSize(16, 16)
+themeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -60, -3)
+
+themeTex = themeBtn:CreateTexture(nil, "ARTWORK")
+themeTex:SetAllPoints()
+
+themeBtn:SetScript("OnClick", function()
+    if not db then return end
+    if db.bgColorR < 0.5 then
+        -- Switch to Light Mode
+        db.bgColorR     = 0.94
+        db.bgColorG     = 0.94
+        db.bgColorB     = 0.96
+        db.bgColorA     = 0.95
+        db.textColorR   = 0.08
+        db.textColorG   = 0.08
+        db.textColorB   = 0.12
+        db.accentColorR = 0.40
+        db.accentColorG = 0.40
+        db.accentColorB = 0.75
+        db.accentColorA = 1.0
+    else
+        -- Switch to Dark Mode
+        db.bgColorR     = DEFAULTS.bgColorR
+        db.bgColorG     = DEFAULTS.bgColorG
+        db.bgColorB     = DEFAULTS.bgColorB
+        db.bgColorA     = DEFAULTS.bgColorA
+        db.textColorR   = DEFAULTS.textColorR
+        db.textColorG   = DEFAULTS.textColorG
+        db.textColorB   = DEFAULTS.textColorB
+        db.accentColorR = DEFAULTS.accentColorR
+        db.accentColorG = DEFAULTS.accentColorG
+        db.accentColorB = DEFAULTS.accentColorB
+        db.accentColorA = DEFAULTS.accentColorA
+    end
+    
+    if RealmDisplayConfigFrame and RealmDisplayConfigFrame:IsShown() then
+        UpdateConfigPanelFields()
+    end
+    RealmDisplayFrame_Update()
+end)
+
+themeBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+    if db and db.bgColorR < 0.5 then
+        GameTooltip:AddLine("Switch to Light Theme", 1, 1, 1)
+    else
+        GameTooltip:AddLine("Switch to Dark Theme", 1, 1, 1)
+    end
+    GameTooltip:Show()
+end)
+themeBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
 -- 8b. YOUR REALM BLOCK
 local yourDot = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 yourDot:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, Y_YOUR_TOP)
 yourDot:SetText("|TInterface\\FriendsFrame\\StatusIcon-Online:12:12:0:-1|t")
 
 local yourName = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-yourName:SetPoint("TOPLEFT", frame, "TOPLEFT", 22, Y_YOUR_TOP)
-
-local yourPing = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-yourPing:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -8, Y_YOUR_TOP)
-yourPing:SetJustifyH("RIGHT")
+yourName:SetPoint("LEFT", yourDot, "RIGHT", 4, 0)
 
 local yourSub = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-yourSub:SetPoint("TOPLEFT", frame, "TOPLEFT", 22, Y_YOUR_TOP - 15)
+yourSub:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -8, Y_YOUR_TOP)
+yourSub:SetJustifyH("RIGHT")
+
+local yourPing = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+yourPing:SetPoint("RIGHT", yourSub, "LEFT", -8, 0)
+yourPing:SetJustifyH("RIGHT")
 
 -- 8c. DROPDOWN BUTTON
 local dropBtn = CreateFrame("Button", "RealmDisplayDropBtn", frame, "BackdropTemplate")
@@ -399,13 +784,17 @@ dropBtn:SetBackdropBorderColor(0.30, 0.30, 0.55, 1)
 
 local dropLabel = dropBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 dropLabel:SetPoint("LEFT",  dropBtn, "LEFT",  6, 0)
-dropLabel:SetPoint("RIGHT", dropBtn, "RIGHT", -16, 0)
 dropLabel:SetJustifyH("LEFT")
 dropLabel:SetWordWrap(false)
 
-local dropChevron = dropBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-dropChevron:SetPoint("RIGHT", dropBtn, "RIGHT", -4, 0)
-dropChevron:SetText("|cff888888v|r")
+local dropChevron = dropBtn:CreateTexture(nil, "ARTWORK")
+dropChevron:SetSize(12, 12)
+dropChevron:SetPoint("RIGHT", dropBtn, "RIGHT", -6, 0)
+dropChevron:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\chevron.png")
+
+local dropSub = dropBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+dropSub:SetPoint("RIGHT", dropChevron, "LEFT", -6, 0)
+dropSub:SetJustifyH("RIGHT")
 
 -- 8d. SEPARATOR 1 (below dropdown)
 local sep1 = frame:CreateTexture(nil, "BACKGROUND")
@@ -414,13 +803,32 @@ sep1:SetPoint("TOPLEFT",  frame, "TOPLEFT",   6, Y_SEP1)
 sep1:SetPoint("TOPRIGHT", frame, "TOPRIGHT",  -6, Y_SEP1)
 sep1:SetColorTexture(0.25, 0.25, 0.45, 0.8)
 
--- 8e. BODY TEXT
-local bodyText = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-bodyText:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, Y_BODY_TOP)
-bodyText:SetWidth(PANEL_W - 16)
-bodyText:SetHeight(0)
-bodyText:SetJustifyH("LEFT")
-bodyText:SetJustifyV("TOP")
+-- 8e. BODY ROWS POOL
+local rows = {}
+local function GetOrCreateRow(index)
+    if rows[index] then return rows[index] end
+    local rFrame = CreateFrame("Frame", nil, frame)
+    rFrame:SetSize(PANEL_W - 16, ROW_H)
+    
+    local name = rFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    name:SetPoint("LEFT", rFrame, "LEFT", 4, 0)
+    name:SetJustifyH("LEFT")
+    rFrame.name = name
+    
+    local flag = rFrame:CreateTexture(nil, "ARTWORK")
+    flag:SetSize(14, 10)
+    rFrame.flag = flag
+    
+    local reg = rFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    reg:SetJustifyH("RIGHT")
+    rFrame.reg = reg
+    
+    reg:SetPoint("RIGHT", rFrame, "RIGHT", -4, 0)
+    flag:SetPoint("RIGHT", reg, "LEFT", -6, 0)
+    
+    rows[index] = rFrame
+    return rFrame
+end
 
 -- 8f. SEPARATOR 2 (above footer) — positioned dynamically
 local sep2 = frame:CreateTexture(nil, "BACKGROUND")
@@ -446,15 +854,44 @@ dropPanel:SetBackdropColor(0.06, 0.06, 0.14, 0.98)
 dropPanel:SetBackdropBorderColor(0.30, 0.30, 0.55, 1)
 dropPanel:Hide()
 
-local searchBox = CreateFrame("EditBox", nil, dropPanel, "InputBoxTemplate")
+local searchBox = CreateFrame("EditBox", nil, dropPanel, "BackdropTemplate")
 searchBox:SetHeight(20)
 searchBox:SetPoint("TOPLEFT",  dropPanel, "TOPLEFT",   8, -6)
 searchBox:SetPoint("TOPRIGHT", dropPanel, "TOPRIGHT", -8, -6)
 searchBox:SetAutoFocus(false)
 searchBox:SetMaxLetters(64)
+searchBox:SetTextInsets(6, 6, 0, 0)
+searchBox:SetFontObject("GameFontHighlightSmall")
+
+searchBox:SetBackdrop({
+    bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeSize = 1,
+})
+
+function UpdateSearchBoxVisuals()
+    if not db then return end
+    local isLight = (db.bgColorR > 0.5)
+    if isLight then
+        searchBox:SetBackdropColor(0.88, 0.88, 0.90, 1)
+        searchBox:SetBackdropBorderColor(0.70, 0.70, 0.75, 1)
+        searchBox:SetTextColor(0.1, 0.1, 0.1)
+    else
+        searchBox:SetBackdropColor(0.03, 0.03, 0.07, 1)
+        searchBox:SetBackdropBorderColor(0.20, 0.20, 0.35, 1)
+        searchBox:SetTextColor(0.9, 0.9, 0.9)
+    end
+end
+
+searchBox:SetScript("OnEditFocusGained", function(self)
+    self:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+end)
+searchBox:SetScript("OnEditFocusLost", function(self)
+    UpdateSearchBoxVisuals()
+end)
 
 local searchHint = dropPanel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-searchHint:SetPoint("LEFT", searchBox, "LEFT", 4, 0)
+searchHint:SetPoint("LEFT", searchBox, "LEFT", 8, 0)
 searchHint:SetText("Search realms...")
 
 searchBox:SetScript("OnTextChanged", function(self)
@@ -464,8 +901,8 @@ end)
 searchBox:SetScript("OnEscapePressed", function() dropPanel:Hide() end)
 
 local scrollFrame = CreateFrame("ScrollFrame", "RealmDisplayScrollFrame", dropPanel, "UIPanelScrollFrameTemplate")
-scrollFrame:SetPoint("TOPLEFT",     dropPanel, "TOPLEFT",    4, -30)
-scrollFrame:SetPoint("BOTTOMRIGHT", dropPanel, "BOTTOMRIGHT", -26, 4)
+scrollFrame:SetPoint("TOPLEFT",     dropPanel, "TOPLEFT",    4, -54)
+scrollFrame:SetPoint("BOTTOMRIGHT", dropPanel, "BOTTOMRIGHT", -12, 4)
 scrollFrame:EnableMouseWheel(true)
 scrollFrame:SetScript("OnMouseWheel", function(self, delta)
     local cur = self:GetVerticalScroll()
@@ -475,8 +912,40 @@ scrollFrame:SetScript("OnMouseWheel", function(self, delta)
     self:SetVerticalScroll(newVal)
 end)
 
+-- Skin the scrollbar for a modern flat/thin look
+local scrollBar = _G["RealmDisplayScrollFrameScrollBar"]
+if scrollBar then
+    local upBtn = _G["RealmDisplayScrollFrameScrollBarScrollUpButton"]
+    local downBtn = _G["RealmDisplayScrollFrameScrollBarScrollDownButton"]
+    if upBtn then upBtn:Hide() end
+    if downBtn then downBtn:Hide() end
+
+    local thumb = _G["RealmDisplayScrollFrameScrollBarThumbTexture"] or scrollBar:GetThumbTexture()
+    for _, region in ipairs({scrollBar:GetRegions()}) do
+        if region:IsObjectType("Texture") and region ~= thumb then
+            region:Hide()
+        end
+    end
+
+    if thumb then
+        thumb:SetColorTexture(0.20, 0.20, 0.40, 0.8) -- sleek dark blue thumb
+        thumb:SetSize(6, 24) -- thin
+    end
+
+    local trackBg = scrollBar:CreateTexture(nil, "BACKGROUND")
+    trackBg:SetPoint("TOPLEFT", scrollBar, "TOPLEFT", 0, 0)
+    trackBg:SetPoint("BOTTOMRIGHT", scrollBar, "BOTTOMRIGHT", 0, 0)
+    trackBg:SetColorTexture(0.08, 0.08, 0.16, 0.4)
+    scrollBar.trackBg = trackBg
+
+    scrollBar:ClearAllPoints()
+    scrollBar:SetPoint("TOPRIGHT", dropPanel, "TOPRIGHT", -4, -54)
+    scrollBar:SetPoint("BOTTOMRIGHT", dropPanel, "BOTTOMRIGHT", -4, 4)
+    scrollBar:SetWidth(6)
+end
+
 local scrollChild = CreateFrame("Frame", nil, scrollFrame)
-scrollChild:SetWidth(PANEL_W - 40)
+scrollChild:SetWidth(PANEL_W - 28)
 scrollChild:SetHeight(1)
 scrollFrame:SetScrollChild(scrollChild)
 
@@ -486,13 +955,36 @@ local function GetOrCreateRealmButton(index)
     if realmButtons[index] then return realmButtons[index] end
     local btn = CreateFrame("Button", nil, scrollChild)
     btn:SetHeight(20)
+    
     local lbl = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     lbl:SetPoint("LEFT",  btn, "LEFT",  4, 0)
-    lbl:SetPoint("RIGHT", btn, "RIGHT", -4, 0)
     lbl:SetJustifyH("LEFT")
     btn.label = lbl
-    btn:SetScript("OnEnter", function() lbl:SetTextColor(1, 0.85, 0, 1) end)
-    btn:SetScript("OnLeave", function() lbl:SetTextColor(0.8, 0.8, 0.8, 1) end)
+    
+    local reg = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    reg:SetPoint("RIGHT", btn, "RIGHT", -4, 0)
+    reg:SetJustifyH("RIGHT")
+    btn.reg = reg
+    
+    local flag = btn:CreateTexture(nil, "ARTWORK")
+    flag:SetSize(14, 10)
+    flag:SetPoint("RIGHT", reg, "LEFT", -6, 0)
+    btn.flag = flag
+    
+    btn:SetScript("OnEnter", function() 
+        if db and db.bgColorR > 0.5 then
+            lbl:SetTextColor(db.accentColorR * 0.7, db.accentColorG * 0.7, db.accentColorB * 0.7, 1) 
+        else
+            lbl:SetTextColor(1, 0.85, 0, 1) 
+        end
+    end)
+    btn:SetScript("OnLeave", function() 
+        if db then
+            lbl:SetTextColor(db.textColorR, db.textColorG, db.textColorB, 1)
+        else
+            lbl:SetTextColor(0.8, 0.8, 0.8, 1)
+        end
+    end)
     btn:SetScript("OnClick", function(self)
         db.activeRealm = self.realmName
         dropPanel:Hide()
@@ -506,6 +998,119 @@ end
 
 -- allDropRealms holds the full cluster list for the dropdown (including current realm)
 local allDropRealms = {}
+local sortColumn = "name"
+local sortAscending = true
+
+local function SortRealmList()
+    table.sort(allDropRealms, function(a, b)
+        local valA, valB
+        if sortColumn == "name" then
+            valA, valB = a:lower(), b:lower()
+        elseif sortColumn == "locale" then
+            valA, valB = GetRealmLocale(a):lower(), GetRealmLocale(b):lower()
+            if valA == valB then
+                return a:lower() < b:lower()
+            end
+        end
+        if sortAscending then
+            return valA < valB
+        else
+            return valA > valB
+        end
+    end)
+end
+
+-- Sorting Header Bar
+local sortHeader = CreateFrame("Frame", nil, dropPanel)
+sortHeader:SetSize(PANEL_W - 12, 16)
+sortHeader:SetPoint("TOPLEFT", dropPanel, "TOPLEFT", 0, -32)
+
+local function CreateSortHeaderButton(text, align)
+    local btn = CreateFrame("Button", nil, sortHeader)
+    btn:SetHeight(16)
+    local lbl = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    if align == "LEFT" then
+        lbl:SetPoint("LEFT", btn, "LEFT", 0, 0)
+    elseif align == "RIGHT" then
+        lbl:SetPoint("RIGHT", btn, "RIGHT", 0, 0)
+    else
+        lbl:SetPoint("CENTER", btn, "CENTER", 0, 0)
+    end
+    btn:SetFontString(lbl)
+    btn.lbl = lbl
+    
+    btn:SetScript("OnEnter", function()
+        if db and db.bgColorR > 0.5 then
+            lbl:SetTextColor(db.accentColorR * 0.7, db.accentColorG * 0.7, db.accentColorB * 0.7, 1) 
+        else
+            lbl:SetTextColor(1, 0.85, 0, 1) 
+        end
+    end)
+    btn:SetScript("OnLeave", function()
+        local isCurrent = (sortColumn == "name" and text == "Name") or 
+                          (sortColumn == "locale" and text == "Lang")
+        if isCurrent then
+            if db then
+                lbl:SetTextColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+            else
+                lbl:SetTextColor(1, 0.82, 0, 1)
+            end
+        else
+            lbl:SetTextColor(0.5, 0.5, 0.5, 1)
+        end
+    end)
+    return btn
+end
+
+local headerName = CreateSortHeaderButton("Name", "LEFT")
+headerName:SetWidth(80)
+headerName:SetPoint("LEFT", sortHeader, "LEFT", 12, 0)
+
+local headerLang = CreateSortHeaderButton("Lang", "RIGHT")
+headerLang:SetWidth(60)
+headerLang:SetPoint("RIGHT", sortHeader, "RIGHT", -28, 0)
+
+local function UpdateSortHeaders()
+    if not db then return end
+    local accentColorHex = string.format("%02x%02x%02x", 
+        math.floor(db.accentColorR * 255 + 0.5), 
+        math.floor(db.accentColorG * 255 + 0.5), 
+        math.floor(db.accentColorB * 255 + 0.5)
+    )
+    
+    local nameColor = (sortColumn == "name") and ("|cff" .. accentColorHex) or "|cff888888"
+    local langColor = (sortColumn == "locale") and ("|cff" .. accentColorHex) or "|cff888888"
+    
+    local nameText = "Name" .. ((sortColumn == "name") and (sortAscending and " ^" or " v") or "")
+    local langText = "Lang" .. ((sortColumn == "locale") and (sortAscending and " ^" or " v") or "")
+    
+    headerName.lbl:SetText(nameColor .. nameText .. "|r")
+    headerLang.lbl:SetText(langColor .. langText .. "|r")
+end
+
+headerName:SetScript("OnClick", function()
+    if sortColumn == "name" then
+        sortAscending = not sortAscending
+    else
+        sortColumn = "name"
+        sortAscending = true
+    end
+    SortRealmList()
+    UpdateSortHeaders()
+    RealmDisplayDropPanel_Filter(searchBox:GetText())
+end)
+
+headerLang:SetScript("OnClick", function()
+    if sortColumn == "locale" then
+        sortAscending = not sortAscending
+    else
+        sortColumn = "locale"
+        sortAscending = true
+    end
+    SortRealmList()
+    UpdateSortHeaders()
+    RealmDisplayDropPanel_Filter(searchBox:GetText())
+end)
 
 function RealmDisplayDropPanel_Filter(query)
     query = (query or ""):lower()
@@ -518,11 +1123,22 @@ function RealmDisplayDropPanel_Filter(query)
             local btn = GetOrCreateRealmButton(count)
             btn.realmName = r
             local locale = GetRealmLocale(r)
-            btn.label:SetText(string.format(
-                "|cffCCCCCC%s|r  |cff556688[%s]|r |cff445566[%s]|r",
-                r, locale, region
-            ))
-            btn.label:SetTextColor(0.8, 0.8, 0.8, 1)
+            
+            local isLight = (db and db.bgColorR > 0.5)
+            local shadowEnabled = not isLight
+
+            btn.label:SetText(r)
+            if db then
+                btn.label:SetTextColor(db.textColorR, db.textColorG, db.textColorB, 1)
+            else
+                btn.label:SetTextColor(0.8, 0.8, 0.8, 1)
+            end
+            btn.flag:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Flags\\" .. locale .. ".png")
+            btn.reg:SetText(GetRegionFlag(region))
+            
+            SetFontStringShadow(btn.label, shadowEnabled)
+            SetFontStringShadow(btn.reg, shadowEnabled)
+            
             btn:ClearAllPoints()
             btn:SetPoint("TOPLEFT",  scrollChild, "TOPLEFT",  0, -y)
             btn:SetPoint("TOPRIGHT", scrollChild, "TOPRIGHT", 0, -y)
@@ -543,9 +1159,10 @@ dropBtn:SetScript("OnClick", function()
         dropPanel:SetPoint("BOTTOMLEFT",  dropBtn, "TOPLEFT",  0, 2)
         dropPanel:SetPoint("BOTTOMRIGHT", dropBtn, "TOPRIGHT", 0, 2)
         local maxRows = math.min(#allDropRealms, 8)
-        dropPanel:SetHeight(34 + maxRows * 20 + 6)
+        dropPanel:SetHeight(58 + maxRows * 20 + 6)
         dropPanel:Show()
         searchBox:SetFocus()
+        UpdateSortHeaders()
         RealmDisplayDropPanel_Filter(searchBox:GetText())
     end
 end)
@@ -562,6 +1179,512 @@ dropPanel:SetScript("OnShow", function() clickCatcher:Show() end)
 dropPanel:SetScript("OnHide", function() clickCatcher:Hide() end)
 
 -- ============================================================
+-- 9b. APPEARANCE CONFIG PANEL
+-- ============================================================
+local FONT_LIST = {
+    { label = "Friz Quadrata",  path = "Fonts\\FRIZQT__.TTF"  },
+    { label = "Arial Narrow",   path = "Fonts\\ARIALN.TTF"    },
+    { label = "Morpheus",       path = "Fonts\\MORPHEUS.TTF"  },
+    { label = "Skurri",         path = "Fonts\\SKURRI.TTF"    },
+}
+
+local function GetFontsList()
+    local fonts = {}
+    local defaultFonts = {
+        { label = "Friz Quadrata",  path = "Fonts\\FRIZQT__.TTF"  },
+        { label = "Arial Narrow",   path = "Fonts\\ARIALN.TTF"    },
+        { label = "Morpheus",       path = "Fonts\\MORPHEUS.TTF"  },
+        { label = "Skurri",         path = "Fonts\\SKURRI.TTF"    },
+    }
+    
+    local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+    if LSM then
+        local lsmFonts = LSM:List("font")
+        if lsmFonts and #lsmFonts > 0 then
+            for _, name in ipairs(lsmFonts) do
+                local path = LSM:Fetch("font", name)
+                if path then
+                    table.insert(fonts, { label = name, path = path })
+                end
+            end
+        end
+    end
+    
+    if #fonts == 0 then
+        fonts = defaultFonts
+    end
+    
+    table.sort(fonts, function(a, b) return a.label:lower() < b.label:lower() end)
+    return fonts
+end
+
+local function OpenColorPicker(r, g, b, a, onChangeCallback, onCancelCallback)
+    if ColorPickerFrame.SetupColorPickerAndShow then
+        ColorPickerFrame:SetupColorPickerAndShow({
+            r           = r,
+            g           = g,
+            b           = b,
+            opacity     = a and (1 - a) or nil,
+            hasOpacity  = (a ~= nil),
+            swatchFunc  = function()
+                local nr, ng, nb = ColorPickerFrame:GetColorRGB()
+                local na = ColorPickerFrame:GetColorAlpha()
+                onChangeCallback(nr, ng, nb, na)
+            end,
+            cancelFunc  = function(prev)
+                if onCancelCallback then onCancelCallback(prev) end
+            end,
+        })
+    else
+        ColorPickerFrame.func        = function()
+            local nr, ng, nb = ColorPickerFrame:GetColorRGB()
+            local na = 1 - OpacitySliderFrame:GetValue()
+            onChangeCallback(nr, ng, nb, na)
+        end
+        ColorPickerFrame.cancelFunc  = function()
+            if onCancelCallback then onCancelCallback(nil) end
+        end
+        ColorPickerFrame.hasOpacity  = (a ~= nil)
+        ColorPickerFrame.opacity     = a and (1 - a) or 0
+        ColorPickerFrame:SetColorRGB(r, g, b)
+        ShowUIPanel(ColorPickerFrame)
+    end
+end
+
+local function StyleFlatButton(btn)
+    btn:SetBackdrop({
+        bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
+        edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+        edgeSize = 1,
+    })
+    btn:SetBackdropColor(0.10, 0.10, 0.18, 0.95)
+    btn:SetBackdropBorderColor(0.3, 0.3, 0.55, 0.8)
+    
+    local text = btn:GetFontString()
+    if not text then
+        text = btn:CreateFontString(nil, "OVERLAY")
+        text:SetPoint("CENTER", btn, "CENTER", 0, 0)
+        btn:SetFontString(text)
+    end
+    text:SetFontObject("GameFontNormalSmall")
+    text:SetTextColor(0.85, 0.85, 0.85)
+    
+    btn:SetScript("OnEnter", function(self)
+        self:SetBackdropColor(0.15, 0.15, 0.28, 1)
+        if db then
+            self:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+        end
+    end)
+    btn:SetScript("OnLeave", function(self)
+        self:SetBackdropColor(0.10, 0.10, 0.18, 0.95)
+        if db then
+            self:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 0.8)
+        end
+    end)
+end
+
+local configFrame = CreateFrame("Frame", "RealmDisplayConfigFrame", UIParent, "BackdropTemplate")
+configFrame:SetSize(220, 275)
+configFrame:SetBackdrop({
+    bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeSize = 1,
+})
+configFrame:SetBackdropColor(0.04, 0.04, 0.10, 0.98)
+configFrame:SetBackdropBorderColor(0.30, 0.30, 0.55, 1)
+configFrame:Hide()
+
+local cfgTitle = configFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+cfgTitle:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 10, -8)
+cfgTitle:SetText("Appearance Settings")
+
+-- Modern custom flat close button
+local closeBtn = CreateFrame("Button", nil, configFrame, "BackdropTemplate")
+closeBtn:SetSize(18, 18)
+closeBtn:SetPoint("TOPRIGHT", configFrame, "TOPRIGHT", -8, -8)
+closeBtn:SetBackdrop({
+    bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+})
+closeBtn:SetBackdropColor(0.15, 0.15, 0.25, 1)
+
+local closeText = closeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+closeText:SetPoint("CENTER")
+closeText:SetText("X")
+closeText:SetTextColor(0.8, 0.8, 0.8)
+
+closeBtn:SetScript("OnEnter", function()
+    closeText:SetTextColor(1, 0.2, 0.2)
+    closeBtn:SetBackdropColor(0.25, 0.15, 0.15, 1)
+end)
+closeBtn:SetScript("OnLeave", function()
+    closeText:SetTextColor(0.8, 0.8, 0.8)
+    closeBtn:SetBackdropColor(0.15, 0.15, 0.25, 1)
+end)
+closeBtn:SetScript("OnClick", function() configFrame:Hide() end)
+
+-- Font selection row
+local fontLabel = configFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+fontLabel:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -38)
+fontLabel:SetText("Font:")
+
+local fontDropBtn = CreateFrame("Button", "RealmDisplayFontDropBtn", configFrame, "BackdropTemplate")
+fontDropBtn:SetSize(150, 20)
+fontDropBtn:SetPoint("LEFT", fontLabel, "RIGHT", 10, 0)
+fontDropBtn:SetBackdrop({
+    bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeSize = 1,
+})
+fontDropBtn:SetBackdropColor(0.10, 0.10, 0.20, 1)
+fontDropBtn:SetBackdropBorderColor(0.30, 0.30, 0.55, 1)
+
+local fontDropLabel = fontDropBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+fontDropLabel:SetPoint("LEFT", fontDropBtn, "LEFT", 6, 0)
+fontDropLabel:SetPoint("RIGHT", fontDropBtn, "RIGHT", -16, 0)
+fontDropLabel:SetJustifyH("LEFT")
+fontDropLabel:SetWordWrap(false)
+
+local fontDropChevron = fontDropBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+fontDropChevron:SetPoint("RIGHT", fontDropBtn, "RIGHT", -4, 0)
+fontDropChevron:SetText("|cff888888v|r")
+
+-- Font Dropdown Search Panel
+local fontDropPanel = CreateFrame("Frame", "RealmDisplayFontDropPanel", UIParent, "BackdropTemplate")
+fontDropPanel:SetSize(180, 200)
+fontDropPanel:SetFrameStrata("DIALOG")
+fontDropPanel:SetBackdrop({
+    bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeSize = 1,
+})
+fontDropPanel:SetBackdropColor(0.06, 0.06, 0.14, 0.98)
+fontDropPanel:SetBackdropBorderColor(0.30, 0.30, 0.55, 1)
+fontDropPanel:Hide()
+
+local fontSearchBox = CreateFrame("EditBox", nil, fontDropPanel, "InputBoxTemplate")
+fontSearchBox:SetHeight(20)
+fontSearchBox:SetPoint("TOPLEFT",  fontDropPanel, "TOPLEFT",   8, -6)
+fontSearchBox:SetPoint("TOPRIGHT", fontDropPanel, "TOPRIGHT", -8, -6)
+fontSearchBox:SetAutoFocus(false)
+fontSearchBox:SetMaxLetters(64)
+
+local fontSearchHint = fontDropPanel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+fontSearchHint:SetPoint("LEFT", fontSearchBox, "LEFT", 4, 0)
+fontSearchHint:SetText("Search fonts...")
+
+fontSearchBox:SetScript("OnTextChanged", function(self)
+    fontSearchHint:SetShown(self:GetText() == "")
+    RealmDisplayFontDropPanel_Filter(self:GetText())
+end)
+fontSearchBox:SetScript("OnEscapePressed", function() fontDropPanel:Hide() end)
+
+local fontScrollFrame = CreateFrame("ScrollFrame", "RealmDisplayFontScrollFrame", fontDropPanel, "UIPanelScrollFrameTemplate")
+fontScrollFrame:SetPoint("TOPLEFT",     fontDropPanel, "TOPLEFT",    4, -30)
+fontScrollFrame:SetPoint("BOTTOMRIGHT", fontDropPanel, "BOTTOMRIGHT", -12, 4)
+fontScrollFrame:EnableMouseWheel(true)
+fontScrollFrame:SetScript("OnMouseWheel", function(self, delta)
+    local cur = self:GetVerticalScroll()
+    local maxVal = self:GetVerticalScrollRange()
+    local newVal = cur - (delta * 18)
+    newVal = math.max(0, math.min(newVal, maxVal))
+    self:SetVerticalScroll(newVal)
+end)
+
+-- Skin scrollbar
+local fontScrollBar = _G["RealmDisplayFontScrollFrameScrollBar"]
+if fontScrollBar then
+    local upBtn = _G["RealmDisplayFontScrollFrameScrollBarScrollUpButton"]
+    local downBtn = _G["RealmDisplayFontScrollFrameScrollBarScrollDownButton"]
+    if upBtn then upBtn:Hide() end
+    if downBtn then downBtn:Hide() end
+    local thumb = _G["RealmDisplayFontScrollFrameScrollBarThumbTexture"] or fontScrollBar:GetThumbTexture()
+    for _, r in ipairs({fontScrollBar:GetRegions()}) do
+        if r:IsObjectType("Texture") and r ~= thumb then r:Hide() end
+    end
+    if thumb then
+        thumb:SetColorTexture(0.20, 0.20, 0.40, 0.8)
+        thumb:SetSize(6, 24)
+    end
+    fontScrollBar:ClearAllPoints()
+    fontScrollBar:SetPoint("TOPRIGHT", fontDropPanel, "TOPRIGHT", -4, -30)
+    fontScrollBar:SetPoint("BOTTOMRIGHT", fontDropPanel, "BOTTOMRIGHT", -4, 4)
+    fontScrollBar:SetWidth(6)
+end
+
+local fontScrollChild = CreateFrame("Frame", nil, fontScrollFrame)
+fontScrollChild:SetWidth(160)
+fontScrollChild:SetHeight(1)
+fontScrollFrame:SetScrollChild(fontScrollChild)
+
+local fontButtons = {}
+local function GetOrCreateFontButton(index)
+    if fontButtons[index] then return fontButtons[index] end
+    local btn = CreateFrame("Button", nil, fontScrollChild)
+    btn:SetHeight(20)
+    local lbl = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    lbl:SetPoint("LEFT",  btn, "LEFT",  4, 0)
+    lbl:SetPoint("RIGHT", btn, "RIGHT", -4, 0)
+    lbl:SetJustifyH("LEFT")
+    btn.label = lbl
+    btn:SetScript("OnEnter", function() lbl:SetTextColor(1, 0.85, 0, 1) end)
+    btn:SetScript("OnLeave", function() lbl:SetTextColor(0.8, 0.8, 0.8, 1) end)
+    btn:SetScript("OnClick", function(self)
+        db.fontPath = self.fontPath
+        fontDropPanel:Hide()
+        fontSearchBox:SetText("")
+        fontSearchHint:Show()
+        UpdateConfigPanelFields()
+        RealmDisplayFrame_Update()
+    end)
+    fontButtons[index] = btn
+    return btn
+end
+
+function RealmDisplayFontDropPanel_Filter(query)
+    query = (query or ""):lower()
+    local list = GetFontsList()
+    local y = 0
+    local count = 0
+    for _, f in ipairs(list) do
+        if query == "" or f.label:lower():find(query, 1, true) then
+            count = count + 1
+            local btn = GetOrCreateFontButton(count)
+            btn.fontPath = f.path
+            btn.label:SetText(f.label)
+            btn.label:SetTextColor(0.8, 0.8, 0.8, 1)
+            btn.label:SetFont(f.path, 11, "")
+            btn:ClearAllPoints()
+            btn:SetPoint("TOPLEFT",  fontScrollChild, "TOPLEFT",  0, -y)
+            btn:SetPoint("TOPRIGHT", fontScrollChild, "TOPRIGHT", 0, -y)
+            btn:Show()
+            y = y + 20
+        end
+    end
+    for i = count + 1, #fontButtons do fontButtons[i]:Hide() end
+    fontScrollChild:SetHeight(math.max(y, 1))
+    fontScrollFrame:SetVerticalScroll(0)
+end
+
+fontDropBtn:SetScript("OnClick", function()
+    if fontDropPanel:IsShown() then
+        fontDropPanel:Hide()
+    else
+        fontDropPanel:ClearAllPoints()
+        fontDropPanel:SetPoint("TOPLEFT", fontDropBtn, "BOTTOMLEFT", 0, -2)
+        fontDropPanel:SetPoint("TOPRIGHT", fontDropBtn, "BOTTOMRIGHT", 0, -2)
+        fontDropPanel:Show()
+        fontSearchBox:SetFocus()
+        fontSearchBox:SetText("")
+        RealmDisplayFontDropPanel_Filter("")
+    end
+end)
+
+-- Font Size row (Custom Flat Slider)
+local sizeSlider = CreateFrame("Slider", "RealmDisplaySizeSlider", configFrame, "BackdropTemplate")
+sizeSlider:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -75)
+sizeSlider:SetSize(190, 8)
+sizeSlider:SetOrientation("HORIZONTAL")
+sizeSlider:SetMinMaxValues(8, 20)
+sizeSlider:SetValueStep(1)
+sizeSlider:SetObeyStepOnDrag(true)
+
+sizeSlider:SetBackdrop({
+    bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeSize = 1,
+})
+sizeSlider:SetBackdropColor(0.08, 0.08, 0.16, 1)
+sizeSlider:SetBackdropBorderColor(0.2, 0.2, 0.3, 0.8)
+
+local sizeThumb = sizeSlider:CreateTexture(nil, "ARTWORK")
+sizeThumb:SetSize(12, 16)
+sizeThumb:SetColorTexture(0.3, 0.3, 0.55, 1)
+sizeSlider:SetThumbTexture(sizeThumb)
+
+local sizeText = configFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+sizeText:SetPoint("BOTTOMLEFT", sizeSlider, "TOPLEFT", 0, 4)
+
+-- Background Color row (with border)
+local bgBorder = CreateFrame("Frame", nil, configFrame, "BackdropTemplate")
+bgBorder:SetSize(18, 18)
+bgBorder:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -115)
+bgBorder:SetBackdrop({
+    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeSize = 1,
+})
+bgBorder:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+
+local bgSwatch = bgBorder:CreateTexture(nil, "ARTWORK")
+bgSwatch:SetSize(16, 16)
+bgSwatch:SetPoint("CENTER")
+
+local bgBtn = CreateFrame("Button", nil, configFrame, "BackdropTemplate")
+bgBtn:SetSize(166, 22)
+bgBtn:SetPoint("LEFT", bgBorder, "RIGHT", 8, 0)
+StyleFlatButton(bgBtn)
+bgBtn:SetText("Background Color")
+
+-- Text Color row (with border)
+local textBorder = CreateFrame("Frame", nil, configFrame, "BackdropTemplate")
+textBorder:SetSize(18, 18)
+textBorder:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -150)
+textBorder:SetBackdrop({
+    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeSize = 1,
+})
+textBorder:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+
+local textSwatch = textBorder:CreateTexture(nil, "ARTWORK")
+textSwatch:SetSize(16, 16)
+textSwatch:SetPoint("CENTER")
+
+local textBtn = CreateFrame("Button", nil, configFrame, "BackdropTemplate")
+textBtn:SetSize(166, 22)
+textBtn:SetPoint("LEFT", textBorder, "RIGHT", 8, 0)
+StyleFlatButton(textBtn)
+textBtn:SetText("Text Color")
+
+-- Accent/Theme Color row (with border)
+local accentBorder = CreateFrame("Frame", nil, configFrame, "BackdropTemplate")
+accentBorder:SetSize(18, 18)
+accentBorder:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -185)
+accentBorder:SetBackdrop({
+    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeSize = 1,
+})
+accentBorder:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
+
+local accentSwatch = accentBorder:CreateTexture(nil, "ARTWORK")
+accentSwatch:SetSize(16, 16)
+accentSwatch:SetPoint("CENTER")
+
+local accentBtn = CreateFrame("Button", nil, configFrame, "BackdropTemplate")
+accentBtn:SetSize(166, 22)
+accentBtn:SetPoint("LEFT", accentBorder, "RIGHT", 8, 0)
+StyleFlatButton(accentBtn)
+accentBtn:SetText("Accent/Theme Color")
+
+-- Reset Button
+local resetBtn = CreateFrame("Button", nil, configFrame, "BackdropTemplate")
+resetBtn:SetSize(190, 22)
+resetBtn:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -225)
+StyleFlatButton(resetBtn)
+resetBtn:SetText("Reset to Defaults")
+
+function UpdateConfigPanelFields()
+    if not db then return end
+    bgSwatch:SetColorTexture(db.bgColorR, db.bgColorG, db.bgColorB, db.bgColorA)
+    textSwatch:SetColorTexture(db.textColorR, db.textColorG, db.textColorB, 1)
+    accentSwatch:SetColorTexture(db.accentColorR, db.accentColorG, db.accentColorB, db.accentColorA)
+    sizeSlider:SetValue(db.fontHeight)
+    sizeText:SetText("Font Size: " .. db.fontHeight)
+    if sizeThumb then
+        sizeThumb:SetColorTexture(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+    end
+    
+    local fontName = "Friz Quadrata"
+    local list = GetFontsList()
+    for _, f in ipairs(list) do
+        if f.path == db.fontPath then
+            fontName = f.label
+            break
+        end
+    end
+    fontDropLabel:SetText(fontName)
+end
+
+configFrame:SetScript("OnShow", UpdateConfigPanelFields)
+configFrame:HookScript("OnHide", function()
+    fontDropPanel:Hide()
+end)
+
+sizeSlider:SetScript("OnValueChanged", function(self, value)
+    value = math.floor(value + 0.5)
+    db.fontHeight = value
+    sizeText:SetText("Font Size: " .. value)
+    RealmDisplayFrame_Update()
+end)
+
+bgBtn:SetScript("OnClick", function()
+    local prevR, prevG, prevB, prevA = db.bgColorR, db.bgColorG, db.bgColorB, db.bgColorA
+    OpenColorPicker(
+        prevR, prevG, prevB, prevA,
+        function(r, g, b, a)
+            db.bgColorR = r
+            db.bgColorG = g
+            db.bgColorB = b
+            if a ~= nil then db.bgColorA = 1 - a end
+            bgSwatch:SetColorTexture(db.bgColorR, db.bgColorG, db.bgColorB, db.bgColorA)
+            RealmDisplayFrame_Update()
+        end,
+        function()
+            db.bgColorR, db.bgColorG, db.bgColorB, db.bgColorA = prevR, prevG, prevB, prevA
+            bgSwatch:SetColorTexture(db.bgColorR, db.bgColorG, db.bgColorB, db.bgColorA)
+            RealmDisplayFrame_Update()
+        end
+    )
+end)
+
+textBtn:SetScript("OnClick", function()
+    local prevR, prevG, prevB = db.textColorR, db.textColorG, db.textColorB
+    OpenColorPicker(
+        prevR, prevG, prevB, nil,
+        function(r, g, b)
+            db.textColorR = r
+            db.textColorG = g
+            db.textColorB = b
+            textSwatch:SetColorTexture(db.textColorR, db.textColorG, db.textColorB, 1)
+            RealmDisplayFrame_Update()
+        end,
+        function()
+            db.textColorR, db.textColorG, db.textColorB = prevR, prevG, prevB
+            textSwatch:SetColorTexture(db.textColorR, db.textColorG, db.textColorB, 1)
+            RealmDisplayFrame_Update()
+        end
+    )
+end)
+
+accentBtn:SetScript("OnClick", function()
+    local prevR, prevG, prevB, prevA = db.accentColorR, db.accentColorG, db.accentColorB, db.accentColorA
+    OpenColorPicker(
+        prevR, prevG, prevB, prevA,
+        function(r, g, b, a)
+            db.accentColorR = r
+            db.accentColorG = g
+            db.accentColorB = b
+            if a ~= nil then db.accentColorA = 1 - a end
+            accentSwatch:SetColorTexture(db.accentColorR, db.accentColorG, db.accentColorB, db.accentColorA)
+            RealmDisplayFrame_Update()
+        end,
+        function()
+            db.accentColorR, db.accentColorG, db.accentColorB, db.accentColorA = prevR, prevG, prevB, prevA
+            accentSwatch:SetColorTexture(db.accentColorR, db.accentColorG, db.accentColorB, db.accentColorA)
+            RealmDisplayFrame_Update()
+        end
+    )
+end)
+
+resetBtn:SetScript("OnClick", function()
+    db.fontHeight   = DEFAULTS.fontHeight
+    db.fontPath     = DEFAULTS.fontPath
+    db.bgColorR     = DEFAULTS.bgColorR
+    db.bgColorG     = DEFAULTS.bgColorG
+    db.bgColorB     = DEFAULTS.bgColorB
+    db.bgColorA     = DEFAULTS.bgColorA
+    db.textColorR   = DEFAULTS.textColorR
+    db.textColorG   = DEFAULTS.textColorG
+    db.textColorB   = DEFAULTS.textColorB
+    db.accentColorR = DEFAULTS.accentColorR
+    db.accentColorG = DEFAULTS.accentColorG
+    db.accentColorB = DEFAULTS.accentColorB
+    db.accentColorA = DEFAULTS.accentColorA
+    UpdateConfigPanelFields()
+    RealmDisplayFrame_Update()
+end)
+
+-- ============================================================
+
+-- ============================================================
 -- 10. FADE-IN
 -- ============================================================
 local fadeGroup = frame:CreateAnimationGroup()
@@ -574,20 +1697,123 @@ fadeAnim:SetSmoothing("OUT")
 -- ============================================================
 -- 11. MAIN UPDATE FUNCTION
 -- ============================================================
+local function GetTextColorHex()
+    if not db then return "ffffff" end
+    local r = math.floor(db.textColorR * 255 + 0.5)
+    local g = math.floor(db.textColorG * 255 + 0.5)
+    local b = math.floor(db.textColorB * 255 + 0.5)
+    return string.format("%02x%02x%02x", r, g, b)
+end
+
 function RealmDisplayFrame_Update()
     if not db then return end
 
-    -- Update pin button texture and frame movability
+    -- Close button
+    if closeTex then
+        closeTex:SetVertexColor(db.accentColorR, db.accentColorG, db.accentColorB, 0.8)
+    end
+
+    -- Pin button
     if pinTex then
         if db.pinned then
-            pinTex:SetTexture(134532) -- INV_Misc_Lock_01 (padlock)
-            pinTex:SetVertexColor(1, 0.82, 0) -- Gold tint
+            pinTex:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\lock.png")
+            pinTex:SetVertexColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
         else
-            pinTex:SetTexture(134526) -- INV_Misc_Key_03 (key)
-            pinTex:SetVertexColor(1, 0.82, 0) -- Gold tint
+            pinTex:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\unlock.png")
+            pinTex:SetVertexColor(db.accentColorR, db.accentColorG, db.accentColorB, 0.6)
         end
     end
+    -- Config button
+    if cfgTex then
+        cfgTex:SetVertexColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+    end
+    -- Theme button
+    if themeTex then
+        if db.bgColorR < 0.5 then
+            themeTex:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\theme_light.png")
+        else
+            themeTex:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\theme_dark.png")
+        end
+        themeTex:SetVertexColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+    end
     frame:SetMovable(not db.pinned)
+
+    -- Dynamic styling updates
+    local isLight = (db.bgColorR > 0.5)
+    local shadowEnabled = not isLight
+
+    frame:SetBackdropColor(db.bgColorR, db.bgColorG, db.bgColorB, db.bgColorA)
+    frame:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+    if headerBg then
+        headerBg:SetColorTexture(db.accentColorR * 0.4, db.accentColorG * 0.4, db.accentColorB * 0.4, 1)
+    end
+    if sep1 then
+        sep1:SetColorTexture(db.accentColorR, db.accentColorG, db.accentColorB, 0.8)
+    end
+    if sep2 then
+        sep2:SetColorTexture(db.accentColorR, db.accentColorG, db.accentColorB, 0.8)
+    end
+    if dropBtn then
+        dropBtn:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+        if isLight then
+            dropBtn:SetBackdropColor(0.88, 0.88, 0.90, 1)
+        else
+            dropBtn:SetBackdropColor(0.10, 0.10, 0.20, 1)
+        end
+    end
+    -- Snap button styling (matches dropdown)
+    if snapBtn then
+        snapBtn:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+        if isLight then
+            snapBtn:SetBackdropColor(0.88, 0.88, 0.90, 1)
+        else
+            snapBtn:SetBackdropColor(0.10, 0.10, 0.20, 1)
+        end
+    end
+    if snapTex then
+        snapTex:SetVertexColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+    end
+
+    if dropChevron then
+        dropChevron:SetVertexColor(db.accentColorR, db.accentColorG, db.accentColorB, 0.8)
+    end
+    if dropPanel then
+        dropPanel:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+        if isLight then
+            dropPanel:SetBackdropColor(0.92, 0.92, 0.94, 0.98)
+        else
+            dropPanel:SetBackdropColor(0.06, 0.06, 0.14, 0.98)
+        end
+    end
+    if RealmDisplayFontDropBtn then
+        RealmDisplayFontDropBtn:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+    end
+    if RealmDisplayFontDropPanel then
+        RealmDisplayFontDropPanel:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+    end
+    if RealmDisplayConfigFrame then
+        RealmDisplayConfigFrame:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+    end
+
+    local scrollThumb = _G["RealmDisplayScrollFrameScrollBarThumbTexture"]
+    if scrollThumb then
+        if isLight then
+            scrollThumb:SetColorTexture(0.70, 0.70, 0.80, 0.8)
+        else
+            scrollThumb:SetColorTexture(0.20, 0.20, 0.40, 0.8)
+        end
+    end
+
+    footerText:SetFont(db.fontPath, db.fontHeight - 1, "")
+    yourSub:SetFont(db.fontPath, db.fontHeight - 1, "")
+    footerText:SetTextColor(db.textColorR, db.textColorG, db.textColorB)
+
+    SetFontStringShadow(yourName, shadowEnabled)
+    SetFontStringShadow(yourPing, shadowEnabled)
+    SetFontStringShadow(yourSub, shadowEnabled)
+    SetFontStringShadow(dropLabel, shadowEnabled)
+    SetFontStringShadow(dropSub, shadowEnabled)
+    SetFontStringShadow(footerText, shadowEnabled)
 
     local currentRealm, connected = BuildRealmData()
     local region = GetRegionTag()
@@ -603,8 +1829,8 @@ function RealmDisplayFrame_Update()
 
     -- Your realm row
     local yourLocale = GetRealmLocale(currentRealm)
-    yourName:SetText("|cffFFFFFF" .. currentRealm .. "|r")
-    yourSub:SetText(string.format("|cff556688[%s]|r  |cff445566[%s]|r", yourLocale, region))
+    yourName:SetText("|cff" .. GetTextColorHex() .. currentRealm .. "|r")
+    yourSub:SetText(string.format("%s  %s", GetLocaleFlag(yourLocale), GetRegionFlag(region)))
 
     -- Snap button visibility: show only when browsing away from home
     local activeIsHome = (not db.activeRealm) or (db.activeRealm == currentRealm)
@@ -616,29 +1842,47 @@ function RealmDisplayFrame_Update()
     local activeRealm  = db.activeRealm or currentRealm
     local activeLocale = GetRealmLocale(activeRealm)
     local pfx = (activeRealm == currentRealm) and "|TInterface\\FriendsFrame\\StatusIcon-Online:10:10:0:-1|t " or "|TInterface\\FriendsFrame\\StatusIcon-Away:10:10:0:-1|t "
-    dropLabel:SetText(
-        pfx .. "|cffFFFFFF" .. activeRealm .. "|r  "
-        .. string.format("|cff556688[%s]|r |cff445566[%s]|r", activeLocale, region)
-    )
-
-    -- Body: connected realms for the SELECTED realm (from BuildRealmData)
-    local lines = {}
-    for _, r in ipairs(connected) do
-        local locale   = GetRealmLocale(r)
-        local isActive = (r == db.activeRealm)
-        local namePart = isActive and ("|cffFFD100" .. r .. "|r") or ("|cffCCCCCC" .. r .. "|r")
-        lines[#lines + 1] = string.format(
-            "  %s  |cff556688[%s]|r |cff445566[%s]|r",
-            namePart, locale, region
-        )
+    dropLabel:SetText(pfx .. "|cff" .. GetTextColorHex() .. activeRealm .. "|r")
+    if dropSub then
+        dropSub:SetText(string.format("%s  %s", GetLocaleFlag(activeLocale), GetRegionFlag(region)))
     end
 
-    local lineCount = #lines
-    local listH     = lineCount * ROW_H
+    -- Body: connected realms for the SELECTED realm (from BuildRealmData)
+    local y = Y_BODY_TOP
+    for i, r in ipairs(connected) do
+        local rFrame = GetOrCreateRow(i)
+        rFrame:ClearAllPoints()
+        rFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, y)
+        
+        local locale   = GetRealmLocale(r)
+        local isActive = (r == db.activeRealm)
+        local colorHex = isActive and "ffFFD100" or GetTextColorHex()
+        
+        rFrame.name:SetFont(db.fontPath, db.fontHeight, "")
+        rFrame.name:SetText(r)
+        rFrame.name:SetTextColor(
+            isActive and 1 or db.textColorR,
+            isActive and 0.82 or db.textColorG,
+            isActive and 0 or db.textColorB
+        )
+        
+        rFrame.flag:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Flags\\" .. locale .. ".png")
+        
+        rFrame.reg:SetFont(db.fontPath, db.fontHeight - 1, "")
+        rFrame.reg:SetText(GetRegionFlag(region))
 
-    -- Give bodyText enough height to render all lines
-    bodyText:SetHeight(listH + 4)
-    bodyText:SetText(table.concat(lines, "\n"))
+        SetFontStringShadow(rFrame.name, shadowEnabled)
+        SetFontStringShadow(rFrame.reg, shadowEnabled)
+        
+        rFrame:Show()
+        y = y - ROW_H
+    end
+    for i = #connected + 1, #rows do
+        rows[i]:Hide()
+    end
+
+    local lineCount = #connected
+    local listH     = lineCount * ROW_H
 
     -- Dynamic y positions below the body
     local sep2Y   = Y_BODY_TOP - listH - GAP
@@ -652,7 +1896,7 @@ function RealmDisplayFrame_Update()
     footerText:ClearAllPoints()
     footerText:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, footY)
     footerText:SetText(string.format(
-        "|TInterface\\FriendsFrame\\StatusIcon-Offline:10:10:0:-1|t |cff556688CONNECTED|r  |cffAAAAAA%d|r", lineCount
+        "|TInterface\\FriendsFrame\\StatusIcon-Offline:10:10:0:-1|t |cff556688CONNECTED REALMS|r  |cffAAAAAA%d|r", lineCount
     ))
 
     frame:SetSize(PANEL_W, totalH)
@@ -699,13 +1943,28 @@ local function SetupMinimapButton()
             end
         end,
         OnTooltipShow = function(tip)
+            -- *** BUG FIX: always show the CHARACTER'S OWN realm in the tooltip,
+            --     regardless of which realm is selected in the panel dropdown.
             tip:AddLine("|cffFFD100Realm Watch|r")
             tip:AddLine(" ")
-            local cur, conn = BuildRealmData()
-            tip:AddLine("|TInterface\\FriendsFrame\\StatusIcon-Online:12:12:0:-1|t |cff44FF44" .. cur .. "|r  |cff888888(your realm)|r")
-            for _, r in ipairs(conn) do
-                tip:AddLine("|cffCCCCCC  " .. r .. "|r")
+            -- Use GetRealmName() directly so we always get the player's realm,
+            -- never the browsed realm stored in db.activeRealm.
+            local playerRealm = GetRealmName()
+            tip:AddLine("|TInterface\\FriendsFrame\\StatusIcon-Online:12:12:0:-1|t |cff44FF44" .. playerRealm .. "|r  |cff888888(your realm)|r")
+            
+            -- Pull live connected realms for the player's own realm only
+            local seen = { [GetNormalizedName(playerRealm)] = true }
+            local auto = GetAutoCompleteRealms()
+            if auto then
+                for _, r in ipairs(auto) do
+                    local norm = GetNormalizedName(r)
+                    if not seen[norm] then
+                        seen[norm] = true
+                        tip:AddLine("|cffCCCCCC  " .. GetProperRealmName(r) .. "|r")
+                    end
+                end
             end
+
             tip:AddLine(" ")
             tip:AddLine("|cff888888Left-click|r to toggle panel")
             tip:AddLine("|cff888888Right-click|r to open settings")
@@ -782,9 +2041,11 @@ end
 -- ============================================================
 -- 15. SETTINGS PANEL
 -- ============================================================
+
 local function SetupOptionsMenu()
     optionsCategory = Settings.RegisterVerticalLayoutCategory("RealmDisplay")
 
+    -- Toggles
     local panelSetting = Settings.RegisterAddOnSetting(
         optionsCategory, "RealmDisplay_Panel", "showPanel",
         db, type(false), "Show Panel on Login", true
@@ -899,6 +2160,7 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         end
         table.sort(rawList)
         allDropRealms = rawList
+        SortRealmList()
 
         frame:SetShown(db.showPanel)
         RealmDisplayFrame_Update()
