@@ -38,8 +38,11 @@ local pinBtn
 local pinTex
 local cfgBtn
 local cfgTex
+local closeBtn      -- NEW: close panel button
+local closeTex      -- NEW 
 local themeBtn
 local themeTex
+
 
 -- Reverse map: realm name -> list of its connected realms (built at ADDON_LOADED)
 local REALM_CLUSTER = {}
@@ -149,9 +152,9 @@ local REALM_LOCALE = {
     -- EU English
     -- --------------------------------------------------------
 
-    ["Aegwynn"]="EN",["Aerie Peak"]="EN",["Agamaggan"]="EN",["Aggramar"]="EN",
-    ["Ahn'Qiraj"]="EN",["Al'Akir"]="EN",["Alonsus"]="EN",["Arathor"]="EN",
-    ["Argent Dawn"]="EN",["Azjol-Nerub"]="EN",["Azuremyst"]="EN",["Bladefist"]="EN",
+    ["Aerie Peak"]="EN",["Agamaggan"]="EN",
+    ["Ahn'Qiraj"]="EN",["Al'Akir"]="EN",["Alonsus"]="EN",
+    ["Azjol-Nerub"]="EN",["Azuremyst"]="EN",["Bladefist"]="EN",
     ["Blade's Edge"]="EN",["Bloodfeather"]="EN",["Bloodhoof"]="EN",["Bloodscalp"]="EN",
     ["Bronze Dragonflight"]="EN",["Burning Blade"]="EN",["Burning Legion"]="EN",
     ["Burning Steppes"]="EN",["BurningSteppes"]="EN",["Chamber of Aspects"]="EN",
@@ -279,6 +282,9 @@ local EU_CONNECTED_CLUSTERS = {
     {"Nemesis","Tol Barad"},
 }
 
+-- ============================================================
+-- 2c. NA / US CONNECTED REALM CLUSTERS
+-- ============================================================ 
 local NA_CONNECTED_CLUSTERS = {
     -- US English — source: Blizzard connected realms US (approximate)
     {"Aegwynn","Bonechewer","Daggerspine","Gurubashi","Hakkar"},
@@ -624,27 +630,30 @@ local headerLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"
 headerLabel:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, -5)
 headerLabel:SetText("|cffFFD100REALM|r|cffAAAAAA WATCH|r")
 
--- Snap-back button [↺]
-snapBtn = CreateFrame("Button", nil, frame)
-snapBtn:SetSize(16, 16)
-snapBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -24, -3)
+-- -------------------------------------------------------
+-- HEADER BUTTONS (right to left): Close | Pin | Settings | Theme
+-- -------------------------------------------------------
 
-snapTex = snapBtn:CreateTexture(nil, "ARTWORK")
-snapTex:SetAllPoints()
-snapTex:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\refresh.png")
-
-snapBtn:SetScript("OnClick", function()
-    db.activeRealm = nil
-    RealmDisplayFrame_Update()
+-- Close button [X]  — NEW, rightmost
+closeBtn = CreateFrame("Button", nil, frame)
+closeBtn:SetSize(16, 16)
+closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, -3)
+ 
+closeTex = closeBtn:CreateTexture(nil, "ARTWORK")
+closeTex:SetAllPoints()
+closeTex:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\close.png")
+ 
+closeBtn:SetScript("OnClick", function()
+    db.showPanel = false
+    frame:Hide()
 end)
-snapBtn:SetScript("OnEnter", function(self)
+closeBtn:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-    GameTooltip:AddLine("Snap back to your realm", 1, 1, 1)
+    GameTooltip:AddLine("Close panel", 1, 1, 1)
     GameTooltip:Show()
 end)
-snapBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
-
--- Pin button [🔒/🔓]
+closeBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+-- Pin button [🔒/🔓]  — second from right
 pinBtn = CreateFrame("Button", nil, frame)
 pinBtn:SetSize(16, 16)
 pinBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, -3)
@@ -671,7 +680,7 @@ pinBtn:SetScript("OnEnter", function(self)
 end)
 pinBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
--- Settings button [⚙]
+-- Settings button [⚙]  — third from right
 cfgBtn = CreateFrame("Button", nil, frame)
 cfgBtn:SetSize(16, 16)
 cfgBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -42, -3)
@@ -698,10 +707,10 @@ cfgBtn:SetScript("OnEnter", function(self)
 end)
 cfgBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
--- Theme Toggle Button [☀️/🌙]
+-- Theme Toggle Button [☀️/🌙] — fourth from right
 themeBtn = CreateFrame("Button", nil, frame)
 themeBtn:SetSize(16, 16)
-themeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -60, -3)
+themeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -78, -3)
 
 themeTex = themeBtn:CreateTexture(nil, "ARTWORK")
 themeTex:SetAllPoints()
@@ -769,11 +778,11 @@ local yourPing = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 yourPing:SetPoint("RIGHT", yourSub, "LEFT", -8, 0)
 yourPing:SetJustifyH("RIGHT")
 
--- 8c. DROPDOWN BUTTON
+-- 8c. DROPDOWN BUTTON  (with inline snap-back button on the right)
 local dropBtn = CreateFrame("Button", "RealmDisplayDropBtn", frame, "BackdropTemplate")
 dropBtn:SetHeight(DROP_H)
 dropBtn:SetPoint("TOPLEFT",  frame, "TOPLEFT",   6, Y_DROP_TOP)
-dropBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT",  -6, Y_DROP_TOP)
+dropBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, Y_DROP_TOP)    -- full width by default
 dropBtn:SetBackdrop({
     bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
     edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
@@ -795,6 +804,38 @@ dropChevron:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\chevron.p
 local dropSub = dropBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 dropSub:SetPoint("RIGHT", dropChevron, "LEFT", -6, 0)
 dropSub:SetJustifyH("RIGHT")
+
+-- -------------------------------------------------------
+-- SNAP-BACK BUTTON — now lives beside the dropdown row
+-- Shown as a small [↺] button to the right of the dropdown.
+-- It appears only when browsing a non-home realm.
+-- -------------------------------------------------------
+snapBtn = CreateFrame("Button", nil, frame, "BackdropTemplate")
+snapBtn:SetSize(DROP_H, DROP_H)   -- square, same height as dropdown
+snapBtn:SetPoint("TOPLEFT", frame, "TOPRIGHT", -6 - DROP_H - 2, Y_DROP_TOP)  -- right side of frame
+snapBtn:SetBackdrop({
+    bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeSize = 1,
+})
+snapBtn:SetBackdropColor(0.10, 0.10, 0.20, 1)
+snapBtn:SetBackdropBorderColor(0.30, 0.30, 0.55, 1)
+ 
+snapTex = snapBtn:CreateTexture(nil, "ARTWORK")
+snapTex:SetPoint("CENTER")
+snapTex:SetSize(14, 14)
+snapTex:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\refresh.png")
+ 
+snapBtn:SetScript("OnClick", function()
+    db.activeRealm = nil
+    RealmDisplayFrame_Update()
+end)
+snapBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_TOP")
+    GameTooltip:AddLine("Snap back to your realm", 1, 1, 1)
+    GameTooltip:Show()
+end)
+snapBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
 -- 8d. SEPARATOR 1 (below dropdown)
 local sep1 = frame:CreateTexture(nil, "BACKGROUND")
@@ -912,7 +953,7 @@ scrollFrame:SetScript("OnMouseWheel", function(self, delta)
     self:SetVerticalScroll(newVal)
 end)
 
--- Skin the scrollbar for a modern flat/thin look
+-- Skin the scrollbar
 local scrollBar = _G["RealmDisplayScrollFrameScrollBar"]
 if scrollBar then
     local upBtn = _G["RealmDisplayScrollFrameScrollBarScrollUpButton"]
@@ -928,8 +969,8 @@ if scrollBar then
     end
 
     if thumb then
-        thumb:SetColorTexture(0.20, 0.20, 0.40, 0.8) -- sleek dark blue thumb
-        thumb:SetSize(6, 24) -- thin
+        thumb:SetColorTexture(0.20, 0.20, 0.40, 0.8)
+        thumb:SetSize(6, 24)
     end
 
     local trackBg = scrollBar:CreateTexture(nil, "BACKGROUND")
@@ -971,14 +1012,14 @@ local function GetOrCreateRealmButton(index)
     flag:SetPoint("RIGHT", reg, "LEFT", -6, 0)
     btn.flag = flag
     
-    btn:SetScript("OnEnter", function() 
+    btn:SetScript("OnEnter", function()
         if db and db.bgColorR > 0.5 then
-            lbl:SetTextColor(db.accentColorR * 0.7, db.accentColorG * 0.7, db.accentColorB * 0.7, 1) 
+            lbl:SetTextColor(db.accentColorR * 0.7, db.accentColorG * 0.7, db.accentColorB * 0.7, 1)
         else
-            lbl:SetTextColor(1, 0.85, 0, 1) 
+            lbl:SetTextColor(1, 0.85, 0, 1)
         end
     end)
-    btn:SetScript("OnLeave", function() 
+    btn:SetScript("OnLeave", function()
         if db then
             lbl:SetTextColor(db.textColorR, db.textColorG, db.textColorB, 1)
         else
@@ -996,7 +1037,7 @@ local function GetOrCreateRealmButton(index)
     return btn
 end
 
--- allDropRealms holds the full cluster list for the dropdown (including current realm)
+-- allDropRealms holds the full realm list for the dropdown
 local allDropRealms = {}
 local sortColumn = "name"
 local sortAscending = true
@@ -1041,9 +1082,9 @@ local function CreateSortHeaderButton(text, align)
     
     btn:SetScript("OnEnter", function()
         if db and db.bgColorR > 0.5 then
-            lbl:SetTextColor(db.accentColorR * 0.7, db.accentColorG * 0.7, db.accentColorB * 0.7, 1) 
+            lbl:SetTextColor(db.accentColorR * 0.7, db.accentColorG * 0.7, db.accentColorB * 0.7, 1)
         else
-            lbl:SetTextColor(1, 0.85, 0, 1) 
+            lbl:SetTextColor(1, 0.85, 0, 1)
         end
     end)
     btn:SetScript("OnLeave", function()
@@ -1072,9 +1113,9 @@ headerLang:SetPoint("RIGHT", sortHeader, "RIGHT", -28, 0)
 
 local function UpdateSortHeaders()
     if not db then return end
-    local accentColorHex = string.format("%02x%02x%02x", 
-        math.floor(db.accentColorR * 255 + 0.5), 
-        math.floor(db.accentColorG * 255 + 0.5), 
+    local accentColorHex = string.format("%02x%02x%02x",
+        math.floor(db.accentColorR * 255 + 0.5),
+        math.floor(db.accentColorG * 255 + 0.5),
         math.floor(db.accentColorB * 255 + 0.5)
     )
     
@@ -1298,29 +1339,26 @@ local cfgTitle = configFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 cfgTitle:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 10, -8)
 cfgTitle:SetText("Appearance Settings")
 
--- Modern custom flat close button
-local closeBtn = CreateFrame("Button", nil, configFrame, "BackdropTemplate")
-closeBtn:SetSize(18, 18)
-closeBtn:SetPoint("TOPRIGHT", configFrame, "TOPRIGHT", -8, -8)
-closeBtn:SetBackdrop({
-    bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-})
-closeBtn:SetBackdropColor(0.15, 0.15, 0.25, 1)
+local closeBtn2 = CreateFrame("Button", nil, configFrame, "BackdropTemplate")
+closeBtn2:SetSize(18, 18)
+closeBtn2:SetPoint("TOPRIGHT", configFrame, "TOPRIGHT", -8, -8)
+closeBtn2:SetBackdrop({ bgFile = "Interface\\ChatFrame\\ChatFrameBackground" })
+closeBtn2:SetBackdropColor(0.15, 0.15, 0.25, 1)
 
-local closeText = closeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-closeText:SetPoint("CENTER")
-closeText:SetText("X")
-closeText:SetTextColor(0.8, 0.8, 0.8)
+local closeText2 = closeBtn2:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+closeText2:SetPoint("CENTER")
+closeText2:SetText("X")
+closeText2:SetTextColor(0.8, 0.8, 0.8)
 
-closeBtn:SetScript("OnEnter", function()
-    closeText:SetTextColor(1, 0.2, 0.2)
-    closeBtn:SetBackdropColor(0.25, 0.15, 0.15, 1)
+closeBtn2:SetScript("OnEnter", function()
+    closeText2:SetTextColor(1, 0.2, 0.2)
+    closeBtn2:SetBackdropColor(0.25, 0.15, 0.15, 1)
 end)
-closeBtn:SetScript("OnLeave", function()
-    closeText:SetTextColor(0.8, 0.8, 0.8)
-    closeBtn:SetBackdropColor(0.15, 0.15, 0.25, 1)
+closeBtn2:SetScript("OnLeave", function()
+    closeText2:SetTextColor(0.8, 0.8, 0.8)
+    closeBtn2:SetBackdropColor(0.15, 0.15, 0.25, 1)
 end)
-closeBtn:SetScript("OnClick", function() configFrame:Hide() end)
+closeBtn2:SetScript("OnClick", function() configFrame:Hide() end)
 
 -- Font selection row
 local fontLabel = configFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -1508,10 +1546,7 @@ sizeText:SetPoint("BOTTOMLEFT", sizeSlider, "TOPLEFT", 0, 4)
 local bgBorder = CreateFrame("Frame", nil, configFrame, "BackdropTemplate")
 bgBorder:SetSize(18, 18)
 bgBorder:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -115)
-bgBorder:SetBackdrop({
-    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
-    edgeSize = 1,
-})
+bgBorder:SetBackdrop({ edgeFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeSize = 1 })
 bgBorder:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
 
 local bgSwatch = bgBorder:CreateTexture(nil, "ARTWORK")
@@ -1528,10 +1563,7 @@ bgBtn:SetText("Background Color")
 local textBorder = CreateFrame("Frame", nil, configFrame, "BackdropTemplate")
 textBorder:SetSize(18, 18)
 textBorder:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -150)
-textBorder:SetBackdrop({
-    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
-    edgeSize = 1,
-})
+textBorder:SetBackdrop({ edgeFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeSize = 1 })
 textBorder:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
 
 local textSwatch = textBorder:CreateTexture(nil, "ARTWORK")
@@ -1548,10 +1580,7 @@ textBtn:SetText("Text Color")
 local accentBorder = CreateFrame("Frame", nil, configFrame, "BackdropTemplate")
 accentBorder:SetSize(18, 18)
 accentBorder:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -185)
-accentBorder:SetBackdrop({
-    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
-    edgeSize = 1,
-})
+accentBorder:SetBackdrop({ edgeFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeSize = 1 })
 accentBorder:SetBackdropBorderColor(0.4, 0.4, 0.4, 1)
 
 local accentSwatch = accentBorder:CreateTexture(nil, "ARTWORK")
@@ -1607,6 +1636,7 @@ end)
 
 bgBtn:SetScript("OnClick", function()
     local prevR, prevG, prevB, prevA = db.bgColorR, db.bgColorG, db.bgColorB, db.bgColorA
+
     OpenColorPicker(
         prevR, prevG, prevB, prevA,
         function(r, g, b, a)
@@ -1681,8 +1711,6 @@ resetBtn:SetScript("OnClick", function()
     UpdateConfigPanelFields()
     RealmDisplayFrame_Update()
 end)
-
--- ============================================================
 
 -- ============================================================
 -- 10. FADE-IN
@@ -1827,27 +1855,36 @@ function RealmDisplayFrame_Update()
         yourPing:SetText("")
     end
 
-    -- Your realm row
+    -- Your realm row (always the character's actual realm)
     local yourLocale = GetRealmLocale(currentRealm)
     yourName:SetText("|cff" .. GetTextColorHex() .. currentRealm .. "|r")
     yourSub:SetText(string.format("%s  %s", GetLocaleFlag(yourLocale), GetRegionFlag(region)))
 
-    -- Snap button visibility: show only when browsing away from home
-    local activeIsHome = (not db.activeRealm) or (db.activeRealm == currentRealm)
+    -- ---- Snap button: shown beside dropdown only when browsing away from home ----
+    local activeIsHome = (not db.activeRealm) or (GetNormalizedName(db.activeRealm) == GetNormalizedName(currentRealm))
     if snapBtn then
-        snapBtn:SetShown(not activeIsHome)
+        if activeIsHome then
+            snapBtn:Hide()
+            -- Dropdown spans full width when snap is hidden
+            dropBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, Y_DROP_TOP)
+        else
+            snapBtn:Show()
+            -- Shrink dropdown to leave room for snap button
+            dropBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -(6 + DROP_H + 4), Y_DROP_TOP)
+        end
     end
 
-    -- Dropdown button label
+
+    -- Dropdown button label (shows currently browsed realm)
     local activeRealm  = db.activeRealm or currentRealm
     local activeLocale = GetRealmLocale(activeRealm)
-    local pfx = (activeRealm == currentRealm) and "|TInterface\\FriendsFrame\\StatusIcon-Online:10:10:0:-1|t " or "|TInterface\\FriendsFrame\\StatusIcon-Away:10:10:0:-1|t "
+    local pfx = (activeIsHome) and "|TInterface\\FriendsFrame\\StatusIcon-Online:10:10:0:-1|t " or "|TInterface\\FriendsFrame\\StatusIcon-Away:10:10:0:-1|t "
     dropLabel:SetText(pfx .. "|cff" .. GetTextColorHex() .. activeRealm .. "|r")
     if dropSub then
         dropSub:SetText(string.format("%s  %s", GetLocaleFlag(activeLocale), GetRegionFlag(region)))
     end
 
-    -- Body: connected realms for the SELECTED realm (from BuildRealmData)
+    -- Body: connected realms for the selected realm
     local y = Y_BODY_TOP
     for i, r in ipairs(connected) do
         local rFrame = GetOrCreateRow(i)
@@ -1856,8 +1893,7 @@ function RealmDisplayFrame_Update()
         
         local locale   = GetRealmLocale(r)
         local isActive = (r == db.activeRealm)
-        local colorHex = isActive and "ffFFD100" or GetTextColorHex()
-        
+
         rFrame.name:SetFont(db.fontPath, db.fontHeight, "")
         rFrame.name:SetText(r)
         rFrame.name:SetTextColor(
@@ -2024,7 +2060,6 @@ SlashCmdList["REALMDISPLAY"] = function(msg)
         print("Your realm: [" .. cur .. "]  Active: [" .. tostring(db.activeRealm) .. "]")
         print("Connected (" .. #conn .. "):")
         for i, r in ipairs(conn) do print(i .. ": [" .. r .. "]") end
-        print("Frame H: " .. frame:GetHeight() .. "  bodyText H: " .. bodyText:GetStringHeight())
 
     else
         print("|cffFFD100RealmWatch commands:|r")
@@ -2045,7 +2080,6 @@ end
 local function SetupOptionsMenu()
     optionsCategory = Settings.RegisterVerticalLayoutCategory("RealmDisplay")
 
-    -- Toggles
     local panelSetting = Settings.RegisterAddOnSetting(
         optionsCategory, "RealmDisplay_Panel", "showPanel",
         db, type(false), "Show Panel on Login", true
@@ -2105,7 +2139,7 @@ frame:RegisterEvent("PLAYER_LOGIN")
 
 frame:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == "RealmDisplay" then
-        -- Build NORMALIZED_TO_PROPER: prefer spaced names over run-together ones
+        -- Build NORMALIZED_TO_PROPER lookup
         for name, _ in pairs(REALM_LOCALE) do
             local norm = name:gsub("[%s'%-]", ""):lower()
             if not NORMALIZED_TO_PROPER[norm] or name:find(" ") then
@@ -2113,7 +2147,7 @@ frame:SetScript("OnEvent", function(self, event, arg1)
             end
         end
 
-        -- Build REALM_CLUSTER reverse map from EU_CONNECTED_CLUSTERS
+        -- Build REALM_CLUSTER from EU clusters
         for _, cluster in ipairs(EU_CONNECTED_CLUSTERS) do
             for i, r in ipairs(cluster) do
                 local others = {}
@@ -2121,13 +2155,26 @@ frame:SetScript("OnEvent", function(self, event, arg1)
                     if j ~= i then others[#others + 1] = other end
                 end
                 REALM_CLUSTER[r] = others
-                -- Also map the normalized form so lookups are robust
                 local norm = GetNormalizedName(r)
                 if NORMALIZED_TO_PROPER[norm] and NORMALIZED_TO_PROPER[norm] ~= r then
                     REALM_CLUSTER[NORMALIZED_TO_PROPER[norm]] = others
                 end
             end
         end
+ 
+        -- Build REALM_CLUSTER from NA clusters (won't overwrite if EU realm has same name)
+        for _, cluster in ipairs(NA_CONNECTED_CLUSTERS) do
+            for i, r in ipairs(cluster) do
+                if not REALM_CLUSTER[r] then
+                    local others = {}
+                    for j, other in ipairs(cluster) do
+                        if j ~= i then others[#others + 1] = other end
+                    end
+                    REALM_CLUSTER[r] = others
+                end
+            end
+        end
+
 
         RealmDisplayDB = RealmDisplayDB or {}
         for k, v in pairs(DEFAULTS) do
@@ -2148,7 +2195,7 @@ frame:SetScript("OnEvent", function(self, event, arg1)
             frame:SetPoint(db.point, UIParent, db.relPoint, db.xOfs, db.yOfs)
         end
 
-        -- Build the full dropdown realm list once: all unique proper realm names, sorted A-Z
+        -- Build the dropdown realm list : all unique proper realm names, sorted A-Z
         local seenNorm = {}
         local rawList  = {}
         for name, _ in pairs(REALM_LOCALE) do
