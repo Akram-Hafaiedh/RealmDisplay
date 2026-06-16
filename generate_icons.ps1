@@ -6,6 +6,12 @@ if (!(Test-Path $mediaDir)) {
 }
 
 function Create-Icon($name, $drawAction) {
+    $outputPath = Join-Path $mediaDir "$name.png"
+    
+    if (-not $Force -and (Test-Path $outputPath)) {
+        Write-Host "Skipped (already exists): $outputPath"
+        return
+    }
     $bmp = New-Object System.Drawing.Bitmap(32, 32)
     $g = [System.Drawing.Graphics]::FromImage($bmp)
     $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
@@ -188,4 +194,16 @@ Create-Icon "theme_dark" {
     $g.FillEllipse($clearBrush, 12, 4, 20, 20)
     $g.CompositingMode = $oldMode
     $clearBrush.Dispose()
+}
+
+# 8. Close (X)
+Create-Icon "close" {
+    param($g, $brush, $pen)
+    $pen.Width = 4
+    $pen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
+    $pen.EndCap   = [System.Drawing.Drawing2D.LineCap]::Round
+
+    # Draw two crossing lines for an 'X'
+    $g.DrawLine($pen, 8, 8, 24, 24)
+    $g.DrawLine($pen, 24, 8, 8, 24)
 }

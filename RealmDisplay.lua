@@ -571,7 +571,7 @@ StaticPopupDialogs["REALMDISPLAY_RELOAD"] = {
 local PANEL_W    = 270
 local ROW_H      = 20   -- height per realm line in body
 local HEADER_H   = 22   -- header bar
-local YOUR_H     = 22   -- your realm block (single line layout)
+local YOUR_H     = ROW_H   -- your realm block (single line layout)
 local DROP_H     = 22   -- dropdown button
 local GAP        = 4    -- padding between sections
 local SEP_H      = 1    -- separator
@@ -656,7 +656,7 @@ closeBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 -- Pin button [🔒/🔓]  — second from right
 pinBtn = CreateFrame("Button", nil, frame)
 pinBtn:SetSize(16, 16)
-pinBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, -3)
+pinBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -24, -3)
 
 pinTex = pinBtn:CreateTexture(nil, "ARTWORK")
 pinTex:SetAllPoints()
@@ -710,7 +710,7 @@ cfgBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 -- Theme Toggle Button [☀️/🌙] — fourth from right
 themeBtn = CreateFrame("Button", nil, frame)
 themeBtn:SetSize(16, 16)
-themeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -78, -3)
+themeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -60, -3)
 
 themeTex = themeBtn:CreateTexture(nil, "ARTWORK")
 themeTex:SetAllPoints()
@@ -1857,7 +1857,9 @@ function RealmDisplayFrame_Update()
 
     -- Your realm row (always the character's actual realm)
     local yourLocale = GetRealmLocale(currentRealm)
+    yourName:SetFont(db.fontPath, db.fontHeight, "")
     yourName:SetText("|cff" .. GetTextColorHex() .. currentRealm .. "|r")
+    yourSub:SetFont(db.fontPath, db.fontHeight - 1, "")
     yourSub:SetText(string.format("%s  %s", GetLocaleFlag(yourLocale), GetRegionFlag(region)))
 
     -- ---- Snap button: shown beside dropdown only when browsing away from home ----
@@ -1953,6 +1955,7 @@ pingTimer:SetScript("OnUpdate", function(_, dt)
         pingElapsed = 0
         if db and db.showPing then
             local _, _, lat = GetNetStats()
+            yourPing:SetFont(db.fontPath, db.fontHeight - 1, "")
             yourPing:SetText(GetPingColor(lat or 0) .. (lat or 0) .. "ms|r")
         end
     end
