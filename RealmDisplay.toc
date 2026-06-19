@@ -1,4 +1,4 @@
-## Interface: 120005
+## Interface: 120007
 ## Title: Realm Display
 ## Notes: Connected realms panel with minimap button, ping, and slash commands.
 ## SavedVariables: RealmDisplayDB
