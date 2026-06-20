@@ -207,3 +207,20 @@ Create-Icon "close" {
     $g.DrawLine($pen, 8, 8, 24, 24)
     $g.DrawLine($pen, 24, 8, 8, 24)
 }
+
+# 9. Share (Nodes connected by lines)
+Create-Icon "share" {
+    param($g, $brush, $pen)
+    $pen.Width = 3
+    $pen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
+    $pen.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
+
+    # Draw connecting lines
+    $g.DrawLine($pen, 10, 9, 22, 16)
+    $g.DrawLine($pen, 10, 23, 22, 16)
+
+    # Draw three node circles
+    $g.FillEllipse($brush, 6, 5, 8, 8)     # Top-left node
+    $g.FillEllipse($brush, 6, 19, 8, 8)    # Bottom-left node
+    $g.FillEllipse($brush, 18, 12, 8, 8)   # Right node
+}
