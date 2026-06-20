@@ -6,30 +6,35 @@
 -- 1. SAVED VARIABLES & DEFAULTS
 -- ============================================================
 local DEFAULTS = {
-    showPanel       = true,
-    showPing        = true,
-    activeRealm     = nil,
-    minimap         = { hide = false },
-    point           = nil,
-    relPoint        = nil,
-    xOfs            = nil,
-    yOfs            = nil,
-    pinned          = false,
-    bgColorR        = 0.04,
-    bgColorG        = 0.04,
-    bgColorB        = 0.10,
-    bgColorA        = 0.92,
-    fontPath        = "Fonts\\FRIZQT__.TTF",
-    fontHeight      = 11,
-    textColorR      = 0.80,
-    textColorG      = 0.80,
-    textColorB      = 0.80,
-    accentColorR    = 0.25,
-    accentColorG    = 0.25,
-    accentColorB    = 0.45,
-    accentColorA    = 1.0,
-    trackCharacters = true,
-    charDisplayMode = "ALL",
+    showPanel             = true,
+    showPing              = true,
+    activeRealm           = nil,
+    minimap               = { hide = false },
+    point                 = nil,
+    relPoint              = nil,
+    xOfs                  = nil,
+    yOfs                  = nil,
+    pinned                = false,
+    bgColorR              = 0.04,
+    bgColorG              = 0.04,
+    bgColorB              = 0.10,
+    bgColorA              = 0.92,
+    fontPath              = "Fonts\\FRIZQT__.TTF",
+    fontHeight            = 11,
+    textColorR            = 0.80,
+    textColorG            = 0.80,
+    textColorB            = 0.80,
+    accentColorR          = 0.25,
+    accentColorG          = 0.25,
+    accentColorB          = 0.45,
+    accentColorA          = 1.0,
+    trackCharacters       = true,
+    charDisplayMode       = "NAME_LVL_GOLD_PROF",
+    showTotalGold         = true,
+    showMinimapCharacters = true,
+    showMinimapCharDetails = true,
+    showMinimapCharGold   = true,
+    showMinimapClusterGold = true,
 }
 
 local optionsCategory
@@ -153,50 +158,147 @@ local function UpdateActiveCharacterCache()
     }
 end
 
-local function GetCharacterTooltipLine(charName, data)
-    local mode = (db and db.charDisplayMode) or "ALL"
+local DISPLAY_MODE_PATTERNS = {
+    ["NAME_LVL_GOLD_PROF"] = { "NAME_LVL", "GOLD", "PROF" },
+    ["LVL_NAME_PROF_GOLD"] = { "LVL", "NAME", "PROF", "GOLD" },
+    ["NAME_LVL_PROF_GOLD"] = { "NAME_LVL", "PROF", "GOLD" },
+    ["LVL_NAME_GOLD_PROF"] = { "LVL", "NAME", "GOLD", "PROF" },
+    ["NAME_GOLD_PROF"]     = { "NAME", "GOLD", "PROF" },
+    ["LVL_GOLD_PROF"]      = { "LVL", "GOLD", "PROF" },
+    ["NAME_LVL_GOLD"]      = { "NAME_LVL", "GOLD" },
+    ["NAME_LVL_PROF"]      = { "NAME_LVL", "PROF" },
+    ["NAME_GOLD"]          = { "NAME", "GOLD" },
+    ["NAME_PROF"]          = { "NAME", "PROF" },
+    ["LVL_GOLD"]           = { "LVL", "GOLD" },
+    ["LVL_PROF"]           = { "LVL", "PROF" },
+    ["GOLD_PROF"]          = { "GOLD", "PROF" },
+    ["NAME"]               = { "NAME" },
+    ["LVL"]                = { "LVL" },
+    ["GOLD"]               = { "GOLD" },
+    ["PROF"]               = { "PROF" },
+}
 
-    local showName = (mode == "ALL" or mode == "NO_LEVEL" or mode == "NO_GOLD" or mode == "NO_PROF" or mode == "NAME_LVL" or mode == "NAME_GOLD" or mode == "NAME_PROF" or mode == "NAME")
-    local showLvl  = (mode == "ALL" or mode == "NO_NAME" or mode == "NO_GOLD" or mode == "NO_PROF" or mode == "NAME_LVL" or mode == "LVL_GOLD" or mode == "LVL_PROF" or mode == "LVL")
-    local showGold = (mode == "ALL" or mode == "NO_NAME" or mode == "NO_LEVEL" or mode == "NO_PROF" or mode == "NAME_GOLD" or mode == "LVL_GOLD" or mode == "GOLD_PROF" or mode == "GOLD")
-    local showProf = (mode == "ALL" or mode == "NO_NAME" or mode == "NO_LEVEL" or mode == "NO_GOLD" or mode == "NAME_PROF" or mode == "LVL_PROF" or mode == "GOLD_PROF" or mode == "PROF")
+local function GetCharacterTooltipLine(charName, data, isMinimap)
+    local mode = (db and db.charDisplayMode) or "NAME_LVL_GOLD_PROF"
+    
+    local fields = DISPLAY_MODE_PATTERNS[mode] or DISPLAY_MODE_PATTERNS["NAME_LVL_GOLD_PROF"]
+    
+    if isMinimap then
+        if db and not db.showMinimapCharacters then
+            return nil
+        end
+        
+        local newFields = {}
+        for _, f in ipairs(fields) do
+            local include = true
+            if f == "GOLD" then
+                if db and not db.showMinimapCharGold then
+                    include = false
+                end
+            elseif f == "LVL" or f == "PROF" or f == "NAME_LVL" then
+                if db and not db.showMinimapCharDetails then
+                    if f == "NAME_LVL" then
+                        newFields[#newFields + 1] = "NAME"
+                        include = false
+                    else
+                        include = false
+                    end
+                end
+            end
+            if include then
+                newFields[#newFields + 1] = f
+            end
+        end
+        if db and not db.showMinimapCharDetails then
+            local hasName = false
+            for _, f in ipairs(newFields) do
+                if f == "NAME" then hasName = true break end
+            end
+            if not hasName then
+                table.insert(newFields, 1, "NAME")
+            end
+        end
+        fields = newFields
+    end
 
     local parts = {}
     
-    local nameStr = ""
-    if showName then
-        local classColor = RAID_CLASS_COLORS[data.class]
-        local classColorHex = classColor and classColor.colorStr or "ffffff"
-        nameStr = string.format("|c%s%s|r", classColorHex, charName)
-    end
-    
-    local lvlStr = ""
-    if showLvl then
-        lvlStr = string.format("Lv %d", data.level)
-    end
-    
-    if showName and showLvl then
-        table.insert(parts, string.format("%s (%s)", nameStr, lvlStr))
-    elseif showName then
-        table.insert(parts, nameStr)
-    elseif showLvl then
-        table.insert(parts, lvlStr)
-    end
-    
-    if showGold and data.money then
-        table.insert(parts, GetCoinTextureString(data.money))
-    end
-    
-    if showProf then
-        local profs = {}
-        if data.prof1 and data.prof1 ~= "" then table.insert(profs, data.prof1) end
-        if data.prof2 and data.prof2 ~= "" then table.insert(profs, data.prof2) end
-        if #profs > 0 then
-            table.insert(parts, table.concat(profs, ", "))
+    for _, field in ipairs(fields) do
+        if field == "NAME" then
+            local classColor = RAID_CLASS_COLORS[data.class]
+            local classColorHex = classColor and classColor.colorStr or "ffffff"
+            table.insert(parts, string.format("|c%s%s|r", classColorHex, charName))
+            
+        elseif field == "LVL" then
+            table.insert(parts, string.format("Lv %d", data.level))
+            
+        elseif field == "NAME_LVL" then
+            local classColor = RAID_CLASS_COLORS[data.class]
+            local classColorHex = classColor and classColor.colorStr or "ffffff"
+            table.insert(parts, string.format("|c%s%s|r (Lv %d)", classColorHex, charName, data.level))
+            
+        elseif field == "GOLD" then
+            if data.money then
+                table.insert(parts, GetCoinTextureString(data.money))
+            end
+            
+        elseif field == "PROF" then
+            local profs = {}
+            if data.prof1 and data.prof1 ~= "" then table.insert(profs, data.prof1) end
+            if data.prof2 and data.prof2 ~= "" then table.insert(profs, data.prof2) end
+            if #profs > 0 then
+                table.insert(parts, table.concat(profs, ", "))
+            end
         end
     end
     
+    if #parts == 0 then
+        return nil
+    end
+    
     return "  " .. table.concat(parts, " - ")
+end
+
+local function GetRealmClusterGold(realmName)
+    if not db or not db.characters then return 0 end
+    
+    local seen = {}
+    local realms = { realmName }
+    seen[GetNormalizedName(realmName)] = true
+    
+    local connected = REALM_CLUSTER[realmName]
+    if connected then
+        for _, r in ipairs(connected) do
+            local norm = GetNormalizedName(r)
+            if not seen[norm] then
+                seen[norm] = true
+                table.insert(realms, r)
+            end
+        end
+    end
+    
+    local total = 0
+    for _, r in ipairs(realms) do
+        local data = db.characters[r]
+        if not data then
+            local norm = GetNormalizedName(r)
+            for key, val in pairs(db.characters) do
+                if GetNormalizedName(key) == norm then
+                    data = val
+                    break
+                end
+            end
+        end
+        
+        if data then
+            for _, charData in pairs(data) do
+                if charData.money then
+                    total = total + charData.money
+                end
+            end
+        end
+    end
+    return total
 end
 
 -- ============================================================
@@ -494,6 +596,14 @@ listHeader:SetScript("OnEnter", function(self)
         end
     end
     
+    if db and db.showTotalGold then
+        local clusterGold = GetRealmClusterGold(activeRealm)
+        if clusterGold > 0 then
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine("Cluster Gold: " .. GetCoinTextureString(clusterGold), 1, 0.82, 0)
+        end
+    end
+    
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine("Click to insert selected realm name into chat.", 0.8, 0.8, 0.8)
     GameTooltip:AddLine("Shift-Click to link all connected realms.", 0.8, 0.8, 0.8)
@@ -702,6 +812,14 @@ local function GetOrCreateRow(index)
                     hasChars = true
                 end
                 GameTooltip:AddLine(GetCharacterTooltipLine(charName, data), 0.9, 0.9, 0.9)
+            end
+        end
+        
+        if db and db.showTotalGold then
+            local clusterGold = GetRealmClusterGold(self.realmName)
+            if clusterGold > 0 then
+                GameTooltip:AddLine(" ")
+                GameTooltip:AddLine("Cluster Gold: " .. GetCoinTextureString(clusterGold), 1, 0.82, 0)
             end
         end
         
@@ -932,6 +1050,15 @@ local function GetOrCreateRealmButton(index)
             for charName, data in pairs(db.characters[self.realmName]) do
                 GameTooltip:AddLine(GetCharacterTooltipLine(charName, data), 0.9, 0.9, 0.9)
             end
+            
+            if db and db.showTotalGold then
+                local clusterGold = GetRealmClusterGold(self.realmName)
+                if clusterGold > 0 then
+                    GameTooltip:AddLine(" ")
+                    GameTooltip:AddLine("Cluster Gold: " .. GetCoinTextureString(clusterGold), 1, 0.82, 0)
+                end
+            end
+            
             GameTooltip:Show()
         end
     end)
@@ -1091,7 +1218,22 @@ function RealmDisplayDropPanel_Filter(query)
     local y = 0
     local count = 0
     for _, r in ipairs(allDropRealms) do
+        local match = false
         if query == "" or r:lower():find(query, 1, true) then
+            match = true
+        elseif db and db.characters and db.characters[r] then
+            for charName, charData in pairs(db.characters[r]) do
+                if charName:lower():find(query, 1, true) or
+                   (charData.class and charData.class:lower():find(query, 1, true)) or
+                   (charData.prof1 and charData.prof1:lower():find(query, 1, true)) or
+                   (charData.prof2 and charData.prof2:lower():find(query, 1, true)) then
+                    match = true
+                    break
+                end
+            end
+        end
+
+        if match then
             count = count + 1
             local btn = GetOrCreateRealmButton(count)
             btn.realmName = r
@@ -1268,7 +1410,7 @@ local function StyleFlatButton(btn)
 end
 
 local configFrame = CreateFrame("Frame", "RealmDisplayConfigFrame", UIParent, "BackdropTemplate")
-configFrame:SetSize(220, 390)
+configFrame:SetSize(220, 500)
 configFrame:SetBackdrop({
     bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
     edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
@@ -1543,27 +1685,29 @@ StyleFlatButton(accentBtn)
 accentBtn:SetText("Accent/Theme Color")
 
 local DISPLAY_MODE_LABELS = {
-    ALL       = "Name, Level, Gold, Profession",
-    NO_NAME   = "Level, Gold, Profession",
-    NO_LEVEL  = "Name, Gold, Profession",
-    NO_GOLD   = "Name, Level, Profession",
-    NO_PROF   = "Name, Level, Gold",
-    NAME_LVL  = "Name, Level",
-    NAME_GOLD = "Name, Gold",
-    NAME_PROF = "Name, Profession",
-    LVL_GOLD  = "Level, Gold",
-    LVL_PROF  = "Level, Profession",
-    GOLD_PROF = "Gold, Profession",
-    NAME      = "Name Only",
-    LVL       = "Level Only",
-    GOLD      = "Gold Only",
-    PROF      = "Profession Only",
+    NAME_LVL_GOLD_PROF = "Name (Level) - Gold - Profession",
+    LVL_NAME_PROF_GOLD = "Level - Name - Profession - Gold",
+    NAME_LVL_PROF_GOLD = "Name (Level) - Profession - Gold",
+    LVL_NAME_GOLD_PROF = "Level - Name - Gold - Profession",
+    NAME_GOLD_PROF     = "Name - Gold - Profession",
+    LVL_GOLD_PROF      = "Level - Gold - Profession",
+    NAME_LVL_GOLD      = "Name (Level) - Gold",
+    NAME_LVL_PROF      = "Name (Level) - Profession",
+    NAME_GOLD          = "Name - Gold",
+    NAME_PROF          = "Name - Profession",
+    LVL_GOLD           = "Level - Gold",
+    LVL_PROF           = "Level - Profession",
+    GOLD_PROF          = "Gold - Profession",
+    NAME               = "Name Only",
+    LVL                = "Level Only",
+    GOLD               = "Gold Only",
+    PROF               = "Profession Only",
 }
 
 local DISPLAY_MODE_KEYS = {
-    "ALL", "NO_NAME", "NO_LEVEL", "NO_GOLD", "NO_PROF",
-    "NAME_LVL", "NAME_GOLD", "NAME_PROF", "LVL_GOLD", "LVL_PROF", "GOLD_PROF",
-    "NAME", "LVL", "GOLD", "PROF"
+    "NAME_LVL_GOLD_PROF", "LVL_NAME_PROF_GOLD", "NAME_LVL_PROF_GOLD", "LVL_NAME_GOLD_PROF",
+    "NAME_GOLD_PROF", "LVL_GOLD_PROF", "NAME_LVL_GOLD", "NAME_LVL_PROF", "NAME_GOLD", "NAME_PROF",
+    "LVL_GOLD", "LVL_PROF", "GOLD_PROF", "NAME", "LVL", "GOLD", "PROF"
 }
 
 local function CreateConfigCheckbox(name, labelText, parent, y, dbKey, onClickCallback)
@@ -1736,10 +1880,244 @@ charDropBtn:SetScript("OnEnter", function(self)
 end)
 charDropBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
+local totalGoldCB = CreateConfigCheckbox("RealmDisplayShowTotalGoldCB", "Show Total Gold (Cluster)", configFrame, -282, "showTotalGold", function(val)
+    RealmDisplayFrame_Update()
+end)
+
+local miniCharsCB = CreateConfigCheckbox("RealmDisplayShowMinimapCharsCB", "Show Alts on Minimap", configFrame, -312, "showMinimapCharacters", function(val)
+    RealmDisplayFrame_Update()
+end)
+
+local miniDetailsCB = CreateConfigCheckbox("RealmDisplayShowMinimapDetailsCB", "Show Alt Details (Minimap)", configFrame, -342, "showMinimapCharDetails", function(val)
+    RealmDisplayFrame_Update()
+end)
+
+local miniGoldCB = CreateConfigCheckbox("RealmDisplayShowMinimapGoldCB", "Show Alt Gold (Minimap)", configFrame, -372, "showMinimapCharGold", function(val)
+    RealmDisplayFrame_Update()
+end)
+
+local miniClusterGoldCB = CreateConfigCheckbox("RealmDisplayShowMinimapClusterGoldCB", "Show Cluster Gold (Minimap)", configFrame, -402, "showMinimapClusterGold", function(val)
+    RealmDisplayFrame_Update()
+end)
+
+-- Slide-out Character Manager Frame
+local charManagerFrame = CreateFrame("Frame", "RealmDisplayCharManagerFrame", UIParent, "BackdropTemplate")
+charManagerFrame:SetSize(220, 500)
+charManagerFrame:SetBackdrop({
+    bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeSize = 1,
+})
+charManagerFrame:SetBackdropColor(0.04, 0.04, 0.10, 0.98)
+charManagerFrame:SetBackdropBorderColor(0.30, 0.30, 0.55, 1)
+charManagerFrame:Hide()
+
+local cmTitle = charManagerFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+cmTitle:SetPoint("TOPLEFT", charManagerFrame, "TOPLEFT", 10, -8)
+cmTitle:SetText("Manage Characters")
+
+local closeBtn3 = CreateFrame("Button", nil, charManagerFrame, "BackdropTemplate")
+closeBtn3:SetSize(18, 18)
+closeBtn3:SetPoint("TOPRIGHT", charManagerFrame, "TOPRIGHT", -8, -8)
+closeBtn3:SetBackdrop({ bgFile = "Interface\\ChatFrame\\ChatFrameBackground" })
+closeBtn3:SetBackdropColor(0.15, 0.15, 0.25, 1)
+
+local closeText3 = closeBtn3:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+closeText3:SetPoint("CENTER")
+closeText3:SetText("X")
+closeText3:SetTextColor(0.8, 0.8, 0.8)
+
+closeBtn3:SetScript("OnEnter", function()
+    closeText3:SetTextColor(1, 0.2, 0.2)
+    closeBtn3:SetBackdropColor(0.25, 0.15, 0.15, 1)
+end)
+closeBtn3:SetScript("OnLeave", function()
+    closeText3:SetTextColor(0.8, 0.8, 0.8)
+    closeBtn3:SetBackdropColor(0.15, 0.15, 0.25, 1)
+end)
+closeBtn3:SetScript("OnClick", function() charManagerFrame:Hide() end)
+
+local cmScrollFrame = CreateFrame("ScrollFrame", "RealmDisplayCharManagerScrollFrame", charManagerFrame, "UIPanelScrollFrameTemplate")
+cmScrollFrame:SetPoint("TOPLEFT",     charManagerFrame, "TOPLEFT",    4, -34)
+cmScrollFrame:SetPoint("BOTTOMRIGHT", charManagerFrame, "BOTTOMRIGHT", -12, 4)
+cmScrollFrame:EnableMouseWheel(true)
+cmScrollFrame:SetScript("OnMouseWheel", function(self, delta)
+    local cur = self:GetVerticalScroll()
+    local maxVal = self:GetVerticalScrollRange()
+    local newVal = cur - (delta * 18)
+    newVal = math.max(0, math.min(newVal, maxVal))
+    self:SetVerticalScroll(newVal)
+end)
+
+local cmScrollBar = _G["RealmDisplayCharManagerScrollFrameScrollBar"]
+if cmScrollBar then
+    local upBtn = _G["RealmDisplayCharManagerScrollFrameScrollBarScrollUpButton"]
+    local downBtn = _G["RealmDisplayCharManagerScrollFrameScrollBarScrollDownButton"]
+    if upBtn then upBtn:Hide(); upBtn.Show = function() end end
+    if downBtn then downBtn:Hide(); downBtn.Show = function() end end
+    local thumb = _G["RealmDisplayCharManagerScrollFrameScrollBarThumbTexture"] or cmScrollBar:GetThumbTexture()
+    for _, r in ipairs({cmScrollBar:GetRegions()}) do
+        if r:IsObjectType("Texture") and r ~= thumb then r:Hide() end
+    end
+    if thumb then
+        thumb:SetColorTexture(0.20, 0.20, 0.40, 0.8)
+        thumb:SetSize(6, 24)
+    end
+    cmScrollBar:ClearAllPoints()
+    cmScrollBar:SetPoint("TOPRIGHT", charManagerFrame, "TOPRIGHT", -4, -34)
+    cmScrollBar:SetPoint("BOTTOMRIGHT", charManagerFrame, "BOTTOMRIGHT", -4, 4)
+    cmScrollBar:SetWidth(6)
+end
+
+local cmScrollChild = CreateFrame("Frame", nil, cmScrollFrame)
+cmScrollChild:SetWidth(190)
+cmScrollChild:SetHeight(1)
+cmScrollFrame:SetScrollChild(cmScrollChild)
+
+local cmRows = {}
+local function GetOrCreateCMRow(index)
+    if cmRows[index] then return cmRows[index] end
+    local row = CreateFrame("Frame", nil, cmScrollChild)
+    row:SetHeight(20)
+    
+    local label = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    label:SetPoint("LEFT", row, "LEFT", 4, 0)
+    label:SetPoint("RIGHT", row, "RIGHT", -26, 0)
+    label:SetJustifyH("LEFT")
+    row.label = label
+    
+    local delBtn = CreateFrame("Button", nil, row, "BackdropTemplate")
+    delBtn:SetSize(16, 16)
+    delBtn:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+    StyleFlatButton(delBtn)
+    
+    local delText = delBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    delText:SetPoint("CENTER")
+    delText:SetText("x")
+    delText:SetTextColor(0.8, 0.3, 0.3)
+    delBtn:SetFontString(delText)
+    delBtn.text = delText
+    
+    delBtn:SetScript("OnEnter", function() delText:SetTextColor(1, 0.1, 0.1) end)
+    delBtn:SetScript("OnLeave", function() delText:SetTextColor(0.8, 0.3, 0.3) end)
+    
+    row.delBtn = delBtn
+    cmRows[index] = row
+    return row
+end
+
+function UpdateCharManagerList()
+    if not db or not db.characters then return end
+    
+    local isLight = (db.bgColorR > 0.5)
+    local y = 0
+    local count = 0
+    
+    for _, r in ipairs(cmRows) do r:Hide() end
+    
+    local sortedRealms = {}
+    for realmName, _ in pairs(db.characters) do
+        table.insert(sortedRealms, realmName)
+    end
+    table.sort(sortedRealms)
+    
+    for _, realmName in ipairs(sortedRealms) do
+        local chars = db.characters[realmName]
+        if chars then
+            count = count + 1
+            local headerRow = GetOrCreateCMRow(count)
+            headerRow.label:SetText("|cffFFD100" .. realmName .. "|r")
+            headerRow.label:SetFontObject("GameFontNormalSmall")
+            headerRow.delBtn:Hide()
+            headerRow:ClearAllPoints()
+            headerRow:SetPoint("TOPLEFT",  cmScrollChild, "TOPLEFT",  0, -y)
+            headerRow:SetPoint("TOPRIGHT", cmScrollChild, "TOPRIGHT", 0, -y)
+            headerRow:Show()
+            y = y + 20
+            
+            local sortedChars = {}
+            for charName, _ in pairs(chars) do
+                table.insert(sortedChars, charName)
+            end
+            table.sort(sortedChars)
+            
+            for _, charName in ipairs(sortedChars) do
+                local charData = chars[charName]
+                count = count + 1
+                local charRow = GetOrCreateCMRow(count)
+                
+                local classColor = RAID_CLASS_COLORS[charData.class]
+                local classColorHex = classColor and classColor.colorStr or "ffffff"
+                
+                charRow.label:SetText(string.format("  |c%s%s|r (Lv %d)", classColorHex, charName, charData.level))
+                charRow.label:SetFontObject("GameFontHighlightSmall")
+                
+                charRow.delBtn.realm = realmName
+                charRow.delBtn.name = charName
+                charRow.delBtn:Show()
+                
+                charRow.delBtn:SetScript("OnClick", function(self)
+                    if db and db.characters and self.realm and self.name then
+                        db.characters[self.realm][self.name] = nil
+                        local hasChars = false
+                        for _, _ in pairs(db.characters[self.realm]) do
+                            hasChars = true
+                            break
+                        end
+                        if not hasChars then
+                            db.characters[self.realm] = nil
+                        end
+                        UpdateCharManagerList()
+                        RealmDisplayFrame_Update()
+                    end
+                end)
+                
+                charRow:ClearAllPoints()
+                charRow:SetPoint("TOPLEFT",  cmScrollChild, "TOPLEFT",  0, -y)
+                charRow:SetPoint("TOPRIGHT", cmScrollChild, "TOPRIGHT", 0, -y)
+                charRow:Show()
+                y = y + 20
+            end
+        end
+    end
+    
+    cmScrollChild:SetHeight(math.max(y, 1))
+    
+    charManagerFrame:SetBackdropColor(db.bgColorR, db.bgColorG, db.bgColorB, db.bgColorA)
+    charManagerFrame:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
+    
+    local cmScrollThumb = _G["RealmDisplayCharManagerScrollFrameScrollBarThumbTexture"]
+    if cmScrollThumb then
+        if isLight then
+            cmScrollThumb:SetColorTexture(0.70, 0.70, 0.80, 0.8)
+        else
+            cmScrollThumb:SetColorTexture(0.20, 0.20, 0.40, 0.8)
+        end
+    end
+end
+
+-- Manage Characters Button
+local manageCharsBtn = CreateFrame("Button", nil, configFrame, "BackdropTemplate")
+manageCharsBtn:SetSize(190, 22)
+manageCharsBtn:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -435)
+StyleFlatButton(manageCharsBtn)
+manageCharsBtn:SetText("Manage Characters")
+
+manageCharsBtn:SetScript("OnClick", function()
+    if charManagerFrame:IsShown() then
+        charManagerFrame:Hide()
+    else
+        charManagerFrame:ClearAllPoints()
+        charManagerFrame:SetPoint("TOPLEFT", configFrame, "TOPRIGHT", 5, 0)
+        charManagerFrame:Show()
+        UpdateCharManagerList()
+    end
+end)
+
 -- Reset Button
 local resetBtn = CreateFrame("Button", nil, configFrame, "BackdropTemplate")
 resetBtn:SetSize(190, 22)
-resetBtn:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -300)
+resetBtn:SetPoint("TOPLEFT", configFrame, "TOPLEFT", 15, -465)
 StyleFlatButton(resetBtn)
 resetBtn:SetText("Reset to Defaults")
 
@@ -1765,6 +2143,11 @@ function UpdateConfigPanelFields()
     fontDropLabel:SetText(fontName)
 
     if RealmDisplayTrackCB then RealmDisplayTrackCB:SetChecked(db.trackCharacters) end
+    if RealmDisplayShowTotalGoldCB then RealmDisplayShowTotalGoldCB:SetChecked(db.showTotalGold) end
+    if RealmDisplayShowMinimapCharsCB then RealmDisplayShowMinimapCharsCB:SetChecked(db.showMinimapCharacters) end
+    if RealmDisplayShowMinimapDetailsCB then RealmDisplayShowMinimapDetailsCB:SetChecked(db.showMinimapCharDetails) end
+    if RealmDisplayShowMinimapGoldCB then RealmDisplayShowMinimapGoldCB:SetChecked(db.showMinimapCharGold) end
+    if RealmDisplayShowMinimapClusterGoldCB then RealmDisplayShowMinimapClusterGoldCB:SetChecked(db.showMinimapClusterGold) end
     
     local isLight = (db.bgColorR > 0.5)
     
@@ -1781,6 +2164,10 @@ function UpdateConfigPanelFields()
         end
         charDropChevron:SetTextColor(0.5, 0.5, 0.5)
         charLabel:SetTextColor(db.textColorR, db.textColorG, db.textColorB)
+
+        if RealmDisplayShowMinimapCharsCB then RealmDisplayShowMinimapCharsCB:Enable() end
+        if RealmDisplayShowMinimapDetailsCB then RealmDisplayShowMinimapDetailsCB:Enable() end
+        if RealmDisplayShowMinimapGoldCB then RealmDisplayShowMinimapGoldCB:Enable() end
     else
         charDropBtn:Disable()
         charDropPanel:Hide()
@@ -1794,9 +2181,13 @@ function UpdateConfigPanelFields()
         charDropLabel:SetTextColor(0.4, 0.4, 0.4)
         charDropChevron:SetTextColor(0.3, 0.3, 0.3)
         charLabel:SetTextColor(0.4, 0.4, 0.4)
+
+        if RealmDisplayShowMinimapCharsCB then RealmDisplayShowMinimapCharsCB:Disable() end
+        if RealmDisplayShowMinimapDetailsCB then RealmDisplayShowMinimapDetailsCB:Disable() end
+        if RealmDisplayShowMinimapGoldCB then RealmDisplayShowMinimapGoldCB:Disable() end
     end
     
-    charDropLabel:SetText(DISPLAY_MODE_LABELS[db.charDisplayMode] or "Name, Level, Gold, Profession")
+    charDropLabel:SetText(DISPLAY_MODE_LABELS[db.charDisplayMode] or "Name (Level) - Gold - Profession")
 
     if charDropPanel then
         charDropPanel:SetBackdropBorderColor(db.accentColorR, db.accentColorG, db.accentColorB, 1)
@@ -1816,9 +2207,18 @@ function UpdateConfigPanelFields()
         end
     end
     
-    local text = _G["RealmDisplayTrackCBText"]
-    if text then
-        text:SetTextColor(db.textColorR, db.textColorG, db.textColorB)
+    for _, cbName in ipairs({
+        "RealmDisplayTrackCB",
+        "RealmDisplayShowTotalGoldCB",
+        "RealmDisplayShowMinimapCharsCB",
+        "RealmDisplayShowMinimapDetailsCB",
+        "RealmDisplayShowMinimapGoldCB",
+        "RealmDisplayShowMinimapClusterGoldCB",
+    }) do
+        local txt = _G[cbName .. "Text"]
+        if txt then
+            txt:SetTextColor(db.textColorR, db.textColorG, db.textColorB)
+        end
     end
 end
 
@@ -1826,6 +2226,7 @@ configFrame:SetScript("OnShow", UpdateConfigPanelFields)
 configFrame:HookScript("OnHide", function()
     fontDropPanel:Hide()
     charDropPanel:Hide()
+    charManagerFrame:Hide()
 end)
 
 sizeSlider:SetScript("OnValueChanged", function(self, value)
@@ -1896,21 +2297,26 @@ accentBtn:SetScript("OnClick", function()
 end)
 
 resetBtn:SetScript("OnClick", function()
-    db.fontHeight       = DEFAULTS.fontHeight
-    db.fontPath         = DEFAULTS.fontPath
-    db.bgColorR         = DEFAULTS.bgColorR
-    db.bgColorG         = DEFAULTS.bgColorG
-    db.bgColorB         = DEFAULTS.bgColorB
-    db.bgColorA         = DEFAULTS.bgColorA
-    db.textColorR       = DEFAULTS.textColorR
-    db.textColorG       = DEFAULTS.textColorG
-    db.textColorB       = DEFAULTS.textColorB
-    db.accentColorR     = DEFAULTS.accentColorR
-    db.accentColorG     = DEFAULTS.accentColorG
-    db.accentColorB     = DEFAULTS.accentColorB
-    db.accentColorA     = DEFAULTS.accentColorA
-    db.trackCharacters  = DEFAULTS.trackCharacters
-    db.charDisplayMode  = DEFAULTS.charDisplayMode
+    db.fontHeight             = DEFAULTS.fontHeight
+    db.fontPath               = DEFAULTS.fontPath
+    db.bgColorR               = DEFAULTS.bgColorR
+    db.bgColorG               = DEFAULTS.bgColorG
+    db.bgColorB               = DEFAULTS.bgColorB
+    db.bgColorA               = DEFAULTS.bgColorA
+    db.textColorR             = DEFAULTS.textColorR
+    db.textColorG             = DEFAULTS.textColorG
+    db.textColorB             = DEFAULTS.textColorB
+    db.accentColorR           = DEFAULTS.accentColorR
+    db.accentColorG           = DEFAULTS.accentColorG
+    db.accentColorB           = DEFAULTS.accentColorB
+    db.accentColorA           = DEFAULTS.accentColorA
+    db.trackCharacters        = DEFAULTS.trackCharacters
+    db.charDisplayMode        = DEFAULTS.charDisplayMode
+    db.showTotalGold          = DEFAULTS.showTotalGold
+    db.showMinimapCharacters  = DEFAULTS.showMinimapCharacters
+    db.showMinimapCharDetails = DEFAULTS.showMinimapCharDetails
+    db.showMinimapCharGold    = DEFAULTS.showMinimapCharGold
+    db.showMinimapClusterGold = DEFAULTS.showMinimapClusterGold
     UpdateConfigPanelFields()
     RealmDisplayFrame_Update()
 end)
@@ -2210,25 +2616,50 @@ local function SetupMinimapButton()
             end
         end,
         OnTooltipShow = function(tip)
-            -- *** BUG FIX: always show the CHARACTER'S OWN realm in the tooltip,
-            --     regardless of which realm is selected in the panel dropdown.
             tip:AddLine("|cffFFD100Realm Watch|r")
             tip:AddLine(" ")
-            -- Use GetRealmName() directly so we always get the player's realm,
-            -- never the browsed realm stored in db.activeRealm.
+            
             local playerRealm = GetRealmName()
             tip:AddLine("|TInterface\\FriendsFrame\\StatusIcon-Online:12:12:0:-1|t |cff44FF44" .. playerRealm .. "|r  |cff888888(your realm)|r")
             
-            -- Pull live connected realms for the player's own realm only
+            if db and db.showMinimapCharacters and db.characters and db.characters[playerRealm] then
+                local hasChars = false
+                for charName, data in pairs(db.characters[playerRealm]) do
+                    local line = GetCharacterTooltipLine(charName, data, true)
+                    if line then
+                        if not hasChars then
+                            tip:AddLine(" ")
+                            tip:AddLine("Your Characters on Realm:", 1, 0.82, 0)
+                            hasChars = true
+                        end
+                        tip:AddLine(line, 0.9, 0.9, 0.9)
+                    end
+                end
+            end
+
             local seen = { [GetNormalizedName(playerRealm)] = true }
             local auto = GetAutoCompleteRealms()
+            local hasConn = false
             if auto then
                 for _, r in ipairs(auto) do
                     local norm = GetNormalizedName(r)
                     if not seen[norm] then
+                        if not hasConn then
+                            tip:AddLine(" ")
+                            tip:AddLine("Connected Realms:", 1, 0.82, 0)
+                            hasConn = true
+                        end
                         seen[norm] = true
                         tip:AddLine("|cffCCCCCC  " .. GetProperRealmName(r) .. "|r")
                     end
+                end
+            end
+
+            if db and db.showMinimapClusterGold then
+                local clusterGold = GetRealmClusterGold(playerRealm)
+                if clusterGold > 0 then
+                    tip:AddLine(" ")
+                    tip:AddLine("Cluster Gold: " .. GetCoinTextureString(clusterGold), 1, 0.82, 0)
                 end
             end
 
@@ -2372,35 +2803,78 @@ local function SetupOptionsMenu()
 
     local modeSetting = Settings.RegisterAddOnSetting(
         optionsCategory, "RealmDisplay_CharDisplayMode", "charDisplayMode",
-        db, Settings.VarType.String, "Character Details", "ALL"
+        db, Settings.VarType.String, "Character Details Pattern", "NAME_LVL_GOLD_PROF"
     )
     
     local function GetOptions()
         local container = Settings.CreateControlTextContainer()
-        container:Add("ALL", "Name, Level, Gold, Profession")
-        container:Add("NO_NAME", "Level, Gold, Profession")
-        container:Add("NO_LEVEL", "Name, Gold, Profession")
-        container:Add("NO_GOLD", "Name, Level, Profession")
-        container:Add("NO_PROF", "Name, Level, Gold")
-        container:Add("NAME_LVL", "Name, Level")
-        container:Add("NAME_GOLD", "Name, Gold")
-        container:Add("NAME_PROF", "Name, Profession")
-        container:Add("LVL_GOLD", "Level, Gold")
-        container:Add("LVL_PROF", "Level, Profession")
-        container:Add("GOLD_PROF", "Gold, Profession")
-        container:Add("NAME", "Name Only")
-        container:Add("LVL", "Level Only")
-        container:Add("GOLD", "Gold Only")
-        container:Add("PROF", "Profession Only")
+        for _, key in ipairs(DISPLAY_MODE_KEYS) do
+            container:Add(key, DISPLAY_MODE_LABELS[key])
+        end
         return container:GetData()
     end
     
-    Settings.CreateDropdown(optionsCategory, modeSetting, GetOptions, "Choose what character details to display in tooltips.")
+    Settings.CreateDropdown(optionsCategory, modeSetting, GetOptions, "Choose what character details pattern and order to display in tooltips.")
     modeSetting:SetValueChangedCallback(function(_, value)
         db.charDisplayMode = value
         if RealmDisplayConfigFrame and RealmDisplayConfigFrame:IsShown() then
             UpdateConfigPanelFields()
         end
+    end)
+
+    local goldSetting = Settings.RegisterAddOnSetting(
+        optionsCategory, "RealmDisplay_ShowTotalGold", "showTotalGold",
+        db, Settings.VarType.Boolean, "Show Total Gold (Cluster)", true
+    )
+    Settings.CreateCheckbox(optionsCategory, goldSetting,
+        "Show total gold on the active realm cluster in connection tooltips.")
+    goldSetting:SetValueChangedCallback(function(_, value)
+        db.showTotalGold = value
+        RealmDisplayFrame_Update()
+    end)
+
+    local miniCharsSetting = Settings.RegisterAddOnSetting(
+        optionsCategory, "RealmDisplay_MinimapChars", "showMinimapCharacters",
+        db, Settings.VarType.Boolean, "Show Alts on Minimap", true
+    )
+    Settings.CreateCheckbox(optionsCategory, miniCharsSetting,
+        "Show cached alt character list on the Minimap tooltip.")
+    miniCharsSetting:SetValueChangedCallback(function(_, value)
+        db.showMinimapCharacters = value
+        RealmDisplayFrame_Update()
+    end)
+
+    local miniDetailsSetting = Settings.RegisterAddOnSetting(
+        optionsCategory, "RealmDisplay_MinimapDetails", "showMinimapCharDetails",
+        db, Settings.VarType.Boolean, "Show Alt Details (Minimap)", true
+    )
+    Settings.CreateCheckbox(optionsCategory, miniDetailsSetting,
+        "Show details (level, professions) for alts on the Minimap tooltip.")
+    miniDetailsSetting:SetValueChangedCallback(function(_, value)
+        db.showMinimapCharDetails = value
+        RealmDisplayFrame_Update()
+    end)
+
+    local miniGoldSetting = Settings.RegisterAddOnSetting(
+        optionsCategory, "RealmDisplay_MinimapGold", "showMinimapCharGold",
+        db, Settings.VarType.Boolean, "Show Alt Gold (Minimap)", true
+    )
+    Settings.CreateCheckbox(optionsCategory, miniGoldSetting,
+        "Show gold amount for alts on the Minimap tooltip.")
+    miniGoldSetting:SetValueChangedCallback(function(_, value)
+        db.showMinimapCharGold = value
+        RealmDisplayFrame_Update()
+    end)
+
+    local miniClusterGoldSetting = Settings.RegisterAddOnSetting(
+        optionsCategory, "RealmDisplay_MinimapClusterGold", "showMinimapClusterGold",
+        db, Settings.VarType.Boolean, "Show Cluster Gold (Minimap)", true
+    )
+    Settings.CreateCheckbox(optionsCategory, miniClusterGoldSetting,
+        "Show the total cluster gold summary on the Minimap tooltip.")
+    miniClusterGoldSetting:SetValueChangedCallback(function(_, value)
+        db.showMinimapClusterGold = value
+        RealmDisplayFrame_Update()
     end)
 
     Settings.RegisterAddOnCategory(optionsCategory)
@@ -2455,8 +2929,18 @@ frame:SetScript("OnEvent", function(self, event, arg1)
             RealmDisplayDB.minimap.hide = false
         end
         db = RealmDisplayDB
+        local oldToNew = {
+            ALL = "NAME_LVL_GOLD_PROF",
+            NO_NAME = "LVL_GOLD_PROF",
+            NO_LEVEL = "NAME_GOLD_PROF",
+            NO_GOLD = "NAME_LVL_PROF",
+            NO_PROF = "NAME_LVL_GOLD",
+        }
+        if db.charDisplayMode and oldToNew[db.charDisplayMode] then
+            db.charDisplayMode = oldToNew[db.charDisplayMode]
+        end
         if not db.charDisplayMode or not DISPLAY_MODE_LABELS[db.charDisplayMode] then
-            db.charDisplayMode = "ALL"
+            db.charDisplayMode = "NAME_LVL_GOLD_PROF"
         end
 
         SetupOptionsMenu()
