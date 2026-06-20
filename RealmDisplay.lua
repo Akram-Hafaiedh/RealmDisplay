@@ -83,7 +83,7 @@ end
 --    RealmDisplay.toc. They're exposed on the RealmDisplay_Data
 --    global table.)
 -- ============================================================
-local REALM_LOCALE          = RealmDisplay_Data.locale
+local REALM_LOCALE          = {} -- Populated dynamically based on region on load
 local EU_CONNECTED_CLUSTERS = RealmDisplay_Data.euClusters
 local NA_CONNECTED_CLUSTERS = RealmDisplay_Data.naClusters
 
@@ -1754,6 +1754,10 @@ frame:RegisterEvent("PLAYER_LOGIN")
 
 frame:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == "RealmDisplay" then
+        -- Load region-specific realms and locales
+        local region = GetRegionTag()
+        REALM_LOCALE = RealmDisplay_Data.realms[region] or {}
+
         -- Build NORMALIZED_TO_PROPER lookup
         for name, _ in pairs(REALM_LOCALE) do
             local norm = name:gsub("[%s'%-]", ""):lower()
@@ -1762,8 +1766,9 @@ frame:SetScript("OnEvent", function(self, event, arg1)
             end
         end
 
-        -- Build REALM_CLUSTER from EU clusters
-        for _, cluster in ipairs(EU_CONNECTED_CLUSTERS) do
+        -- Build REALM_CLUSTER only from the active region's clusters
+        local clusters = (region == "EU") and EU_CONNECTED_CLUSTERS or NA_CONNECTED_CLUSTERS
+        for _, cluster in ipairs(clusters) do
             for i, r in ipairs(cluster) do
                 local others = {}
                 for j, other in ipairs(cluster) do
@@ -1773,19 +1778,6 @@ frame:SetScript("OnEvent", function(self, event, arg1)
                 local norm = GetNormalizedName(r)
                 if NORMALIZED_TO_PROPER[norm] and NORMALIZED_TO_PROPER[norm] ~= r then
                     REALM_CLUSTER[NORMALIZED_TO_PROPER[norm]] = others
-                end
-            end
-        end
- 
-        -- Build REALM_CLUSTER from NA clusters (won't overwrite if EU realm has same name)
-        for _, cluster in ipairs(NA_CONNECTED_CLUSTERS) do
-            for i, r in ipairs(cluster) do
-                if not REALM_CLUSTER[r] then
-                    local others = {}
-                    for j, other in ipairs(cluster) do
-                        if j ~= i then others[#others + 1] = other end
-                    end
-                    REALM_CLUSTER[r] = others
                 end
             end
         end
