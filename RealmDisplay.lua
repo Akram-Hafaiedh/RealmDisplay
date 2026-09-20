@@ -533,7 +533,7 @@ local function SetupMinimapButton()
 
     local broker = LDB:NewDataObject("RealmDisplay", {
         type  = "launcher",
-        icon  = "Interface\\Icons\\INV_Crafting_Blacksmithing",
+        icon  = "Interface\\Icons\\Trade_blacksmithing",
         label = "Realm Display",
         OnClick = function(_, btn)
             if btn == "RightButton" then
