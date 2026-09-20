@@ -1,0 +1,7 @@
+.release/
+artifacts/
+*.zip
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

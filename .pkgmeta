@@ -1,0 +1,12 @@
+package-as: RealmDisplay
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - Dev
+  - .git
+  - .gitignore
+  - .vscode
+  - "*.ps1"
