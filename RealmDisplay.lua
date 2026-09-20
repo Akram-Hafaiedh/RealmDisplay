@@ -24,6 +24,7 @@ local DEFAULTS = {
     customerRealm      = nil,
     customerInGuild    = false,
     autoFillOnWhisper  = true,
+    announceOnWhisper  = false,
 }
 
 local db
@@ -97,7 +98,7 @@ end
 -- 3. LAYOUT
 -- ============================================================
 local PANEL_W = 300
-local PANEL_H = 250
+local PANEL_H = 272
 
 -- Shared UI colors (LiqUI-inspired neutral dark palette) ----
 local C_BG        = { 0.06, 0.06, 0.08, 0.92 }
@@ -281,6 +282,27 @@ guildCB:SetScript("OnClick", function(self)
     PlaySound(856)
 end)
 
+-- Notify checkbox ------------------------------------------
+local notifyCB = CreateFrame("CheckButton", "RealmDisplayNotifyCB", frame, "InterfaceOptionsCheckButtonTemplate")
+notifyCB:SetPoint("TOPLEFT", guildCB, "BOTTOMLEFT", 0, -2)
+local notifyCBText = _G["RealmDisplayNotifyCBText"]
+if notifyCBText then
+    notifyCBText:SetText("Notify on whisper")
+    notifyCBText:SetFontObject("SystemFont_Small")
+    notifyCBText:SetTextColor(C_TEXT[1], C_TEXT[2], C_TEXT[3])
+end
+notifyCB:SetScript("OnClick", function(self)
+    db.announceOnWhisper = not not self:GetChecked()
+    PlaySound(856)
+end)
+notifyCB:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:AddLine("Notify on whisper")
+    GameTooltip:AddLine("Print a verdict line in chat when someone whispers you and the panel is hidden.", 0.8, 0.8, 0.8, true)
+    GameTooltip:Show()
+end)
+notifyCB:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
 -- Footer ---------------------------------------------------
 local footer = frame:CreateFontString(nil, "OVERLAY", "SystemFont_Small")
 footer:SetPoint("BOTTOMLEFT", 12, 8)
@@ -299,15 +321,11 @@ local function FormatVerdictString()
         db.customerRealm, GetRealmName(), VERDICT[v].text)
 end
 
-local function AnnounceWhisperVerdict(sender, realm)
-    local v = GetVerdict(realm, db.customerInGuild)
-    if not v then return end
-    local info = VERDICT[v]
-    print(string.format(PFX .. "%s (%s) -> |cff%02x%02x%02x%s|r",
-        sender, realm or "same realm",
-        math.floor(info.r * 255), math.floor(info.g * 255), math.floor(info.b * 255),
-        info.text))
-end
+local WHISPER_MESSAGES = {
+    PERSONAL = "can craft via personal order",
+    GUILD    = "can craft via guild order",
+    NONE     = "cannot craft - different realm, no shared guild",
+}
 
 -- ============================================================
 -- 6. UPDATE FUNCTION
@@ -483,6 +501,11 @@ SlashCmdList["REALMDISPLAY"] = function(msg)
         print(PFX .. "Auto-fill on whisper " ..
               (db.autoFillOnWhisper and "|cff44FF44enabled|r" or "|cffff4444disabled|r"))
 
+    elseif cmd == "notify" then
+        db.announceOnWhisper = not db.announceOnWhisper
+        print(PFX .. "Whisper chat notifications " ..
+              (db.announceOnWhisper and "|cff44FF44enabled|r" or "|cffff4444disabled|r"))
+
     elseif cmd == "reset" then
         db.point, db.relPoint, db.xOfs, db.yOfs = nil, nil, nil, nil
         frame:ClearAllPoints()
@@ -517,6 +540,7 @@ SlashCmdList["REALMDISPLAY"] = function(msg)
         print("  /rd clear               — clear customer")
         print("  /rd copy                — copy verdict to chat")
         print("  /rd whisper             — toggle whisper auto-fill")
+        print("  /rd notify              — toggle whisper chat notifications")
         print("  /rd reset               — reset panel position")
         print("  /rd minimap             — toggle minimap button")
         print("  /rd debug               — print debug info")
@@ -585,11 +609,36 @@ local function HandleWhisper(text, sender)
 
     db.customerRealm = realm
     UpdateDisplay()
-
-    if not frame:IsShown() then
-        AnnounceWhisperVerdict(name, realm)
-    end
 end
+
+-- ============================================================
+-- 10b. INLINE WHISPER VERDICT
+--      Displays the verdict in whichever chat frame received
+--      the whisper (main window, dedicated whisper tab, etc.)
+-- ============================================================
+hooksecurefunc("ChatFrame_OnEvent", function(self, event, ...)
+    if event ~= "CHAT_MSG_WHISPER" then return end
+    if not db or not db.announceOnWhisper then return end
+    if frame:IsShown() then return end
+
+    local text, sender = ...
+    if not sender then return end
+
+    local name, realm = sender:match("^(.+)%-(.+)$")
+    if not name then
+        name  = sender
+        realm = GetRealmName()
+    end
+    realm = GetProperRealmName(realm)
+
+    local v = GetVerdict(realm, db.customerInGuild)
+    if not v then return end
+    local info    = VERDICT[v]
+    local summary = WHISPER_MESSAGES[v]
+
+    -- Prepend a subtle 2-space indent so it reads as a sub-line of the whisper
+    self:AddMessage("  " .. summary, info.r, info.g, info.b)
+end)
 
 -- ============================================================
 -- 11. EVENTS
@@ -619,6 +668,7 @@ frame:SetScript("OnEvent", function(self, event, arg1, arg2)
         end
 
         guildCB:SetChecked(db.customerInGuild)
+        notifyCB:SetChecked(db.announceOnWhisper)
         frame:SetShown(db.showPanel)
         UpdateDisplay()
 
