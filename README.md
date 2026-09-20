@@ -13,8 +13,10 @@ Tells you at a glance whether you can serve a customer via:
 
 1. Install the addon
 2. `/rd` to open the panel
-3. Type the customer's realm name (or whisper auto-fills it)
-4. Read the verdict
+3. Enter the customer's realm name, or let it auto-fill when they whisper you.
+4. Read the verdict.
+5. Optional: enable **Notify on whisper** to see the verdict inline in chat as customers message you.
+
 
 ## Slash commands
 
@@ -22,7 +24,8 @@ Tells you at a glance whether you can serve a customer via:
 - `/rd check <realm>` — verdict in chat
 - `/rd target` — use current target
 - `/rd clear` — clear customer
-- `/rd whisper` — toggle whisper auto-fill
+| `/rd whisper` | Toggle auto-fill on whisper (default: on) |
+| `/rd notify` | Toggle inline chat verdict on whisper (default: off) |
 - `/rd reset` — reset panel position
 - `/rd minimap` — toggle minimap button
 
@@ -39,6 +42,7 @@ Retail only. Tested on 12.1.0.
 
 - **Live realm data** — uses Blizzard's `GetAutoCompleteRealms()` API. No static database, no maintenance, always accurate.
 - **Whisper auto-fill** — when a customer whispers you, their realm is detected automatically.
+- **Inline whisper verdict** — optionally print the verdict directly in your chat, right under the whisper.
 - **Target detection** — select a player and fill in their realm and guild status with one click.
 - **Minimap button** — quick access via LibDataBroker.
 - **Lightweight** — no performance impact, no bloat.

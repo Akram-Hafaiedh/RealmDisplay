@@ -98,7 +98,7 @@ end
 -- 3. LAYOUT
 -- ============================================================
 local PANEL_W = 300
-local PANEL_H = 272
+local PANEL_H = 296   -- was 272
 
 -- Shared UI colors (LiqUI-inspired neutral dark palette) ----
 local C_BG        = { 0.06, 0.06, 0.08, 0.92 }
@@ -191,10 +191,17 @@ local inputBox = CreateFrame("EditBox", nil, inputRow, "BackdropTemplate")
 inputBox:SetAllPoints()
 inputBox:SetAutoFocus(false)
 inputBox:SetMaxLetters(64)
-inputBox:SetTextInsets(6, 6, 0, 0)
+inputBox:SetTextInsets(6, 24, 0, 0)          -- increased right padding for the icon
 inputBox:SetFontObject("SystemFont_Small")
 ApplyFlatBackdrop(inputBox, C_ELEMENT, C_ELEMENT_B, 1)
 inputBox:SetTextColor(C_TEXT[1], C_TEXT[2], C_TEXT[3])
+
+-- Search icon
+local searchIcon = inputBox:CreateTexture(nil, "OVERLAY")
+searchIcon:SetSize(14, 14)
+searchIcon:SetPoint("RIGHT", -6, 0)
+searchIcon:SetTexture("Interface\\AddOns\\RealmDisplay\\Media\\Icons\\search.png")
+searchIcon:SetVertexColor(0.45, 0.45, 0.48)
 
 local inputHint = inputBox:CreateFontString(nil, "OVERLAY", "SystemFont_Small")
 inputHint:SetPoint("LEFT", 8, 0)
@@ -203,6 +210,7 @@ inputHint:SetTextColor(0.45, 0.45, 0.48)
 
 inputBox:SetScript("OnTextChanged", function(self)
     inputHint:SetShown(self:GetText() == "")
+    if not db then return end
     db.customerRealm = (self:GetText() ~= "") and self:GetText() or nil
     UpdateDisplay()
 end)
@@ -210,11 +218,16 @@ inputBox:SetScript("OnEscapePressed", function(self)
     self:ClearFocus()
 end)
 
--- Action button row ----------------------------------------
-local btnRow = CreateFrame("Frame", nil, frame)
-btnRow:SetPoint("TOPLEFT", inputRow, "BOTTOMLEFT", 0, -6)
-btnRow:SetPoint("TOPRIGHT", inputRow, "BOTTOMRIGHT", 0, -6)
-btnRow:SetHeight(20)
+-- Action button rows (2 lines, full width) ------------------
+local btnRow1 = CreateFrame("Frame", nil, frame)
+btnRow1:SetPoint("TOPLEFT", inputRow, "BOTTOMLEFT", 0, -6)
+btnRow1:SetPoint("TOPRIGHT", inputRow, "BOTTOMRIGHT", 0, -6)
+btnRow1:SetHeight(20)
+
+local btnRow2 = CreateFrame("Frame", nil, frame)
+btnRow2:SetPoint("TOPLEFT", btnRow1, "BOTTOMLEFT", 0, -4)
+btnRow2:SetPoint("TOPRIGHT", btnRow1, "BOTTOMRIGHT", 0, -4)
+btnRow2:SetHeight(20)
 
 local function MakeFlatButton(parent, text)
     local b = CreateFrame("Button", nil, parent, "BackdropTemplate")
@@ -235,22 +248,32 @@ local function MakeFlatButton(parent, text)
     return b
 end
 
-local targetBtn = MakeFlatButton(btnRow, "Use Target")
-targetBtn:SetSize(90, 20)
+-- Row 1
+local targetBtn = MakeFlatButton(btnRow1, "Use Target")
+targetBtn:SetHeight(20)
 targetBtn:SetPoint("LEFT", 0, 0)
+targetBtn:SetPoint("RIGHT", btnRow1, "CENTER", -2, 0)
 
-local clearBtn = MakeFlatButton(btnRow, "Clear")
-clearBtn:SetSize(60, 20)
-clearBtn:SetPoint("LEFT", targetBtn, "RIGHT", 4, 0)
+local clearBtn = MakeFlatButton(btnRow1, "Clear")
+clearBtn:SetHeight(20)
+clearBtn:SetPoint("LEFT", btnRow1, "CENTER", 2, 0)
+clearBtn:SetPoint("RIGHT", 0, 0)
 
-local copyBtn = MakeFlatButton(btnRow, "Copy Realm")
-copyBtn:SetSize(80, 20)
-copyBtn:SetPoint("LEFT", clearBtn, "RIGHT", 4, 0)
+-- Row 2
+local copyBtn = MakeFlatButton(btnRow2, "Copy Realm")
+copyBtn:SetHeight(20)
+copyBtn:SetPoint("LEFT", 0, 0)
+copyBtn:SetPoint("RIGHT", btnRow2, "CENTER", -2, 0)
+
+local resetBtn = MakeFlatButton(btnRow2, "Reset")
+resetBtn:SetHeight(20)
+resetBtn:SetPoint("LEFT", btnRow2, "CENTER", 2, 0)
+resetBtn:SetPoint("RIGHT", 0, 0)
 
 -- Verdict box (clickable) ----------------------------------
 local verdictBox = CreateFrame("Button", nil, frame, "BackdropTemplate")
 verdictBox:SetSize(PANEL_W - 24, 66)
-verdictBox:SetPoint("TOPLEFT", btnRow, "BOTTOMLEFT", 0, -8)
+verdictBox:SetPoint("TOPLEFT", btnRow2, "BOTTOMLEFT", 0, -8)
 ApplyFlatBackdrop(verdictBox, { 0.09, 0.09, 0.11, 1 }, C_ELEMENT_B, 1)
 
 local verdictText = verdictBox:CreateFontString(nil, "OVERLAY", "SystemFont_Med1")
@@ -424,6 +447,27 @@ copyBtn:SetScript("OnEnter", function(self)
     GameTooltip:Show()
 end)
 copyBtn:SetScript("OnLeave", function(self)
+    self:SetBackdropColor(C_ELEMENT[1], C_ELEMENT[2], C_ELEMENT[3], C_ELEMENT[4])
+    self:SetBackdropBorderColor(C_ELEMENT_B[1], C_ELEMENT_B[2], C_ELEMENT_B[3], C_ELEMENT_B[4])
+    GameTooltip:Hide()
+end)
+
+-- reset button
+resetBtn:SetScript("OnClick", function()
+    db.point, db.relPoint, db.xOfs, db.yOfs = nil, nil, nil, nil
+    frame:ClearAllPoints()
+    frame:SetPoint("CENTER")
+    print(PFX .. "Position reset.")
+end)
+resetBtn:SetScript("OnEnter", function(self)
+    self:SetBackdropColor(C_ELEM_HOV[1], C_ELEM_HOV[2], C_ELEM_HOV[3], C_ELEM_HOV[4])
+    self:SetBackdropBorderColor(C_ELEM_HOVB[1], C_ELEM_HOVB[2], C_ELEM_HOVB[3], C_ELEM_HOVB[4])
+    GameTooltip:SetOwner(self, "ANCHOR_TOP")
+    GameTooltip:AddLine("Reset Position")
+    GameTooltip:AddLine("Resets the panel position to the center of the screen.", 0.8, 0.8, 0.8)
+    GameTooltip:Show()
+end)
+resetBtn:SetScript("OnLeave", function(self)
     self:SetBackdropColor(C_ELEMENT[1], C_ELEMENT[2], C_ELEMENT[3], C_ELEMENT[4])
     self:SetBackdropBorderColor(C_ELEMENT_B[1], C_ELEMENT_B[2], C_ELEMENT_B[3], C_ELEMENT_B[4])
     GameTooltip:Hide()
@@ -613,16 +657,12 @@ end
 
 -- ============================================================
 -- 10b. INLINE WHISPER VERDICT
---      Displays the verdict in whichever chat frame received
---      the whisper (main window, dedicated whisper tab, etc.)
+--      Displays the verdict under the whisper in the chat frame
 -- ============================================================
-hooksecurefunc("ChatFrame_OnEvent", function(self, event, ...)
-    if event ~= "CHAT_MSG_WHISPER" then return end
-    if not db or not db.announceOnWhisper then return end
-    if frame:IsShown() then return end
-
-    local text, sender = ...
-    if not sender then return end
+ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER", function(self, event, msg, sender, ...)
+    if not db or not db.announceOnWhisper then return false end
+    if frame:IsShown() then return false end
+    if not sender then return false end
 
     local name, realm = sender:match("^(.+)%-(.+)$")
     if not name then
@@ -632,12 +672,17 @@ hooksecurefunc("ChatFrame_OnEvent", function(self, event, ...)
     realm = GetProperRealmName(realm)
 
     local v = GetVerdict(realm, db.customerInGuild)
-    if not v then return end
+    if not v then return false end
+
     local info    = VERDICT[v]
     local summary = WHISPER_MESSAGES[v]
 
-    -- Prepend a subtle 2-space indent so it reads as a sub-line of the whisper
-    self:AddMessage("  " .. summary, info.r, info.g, info.b)
+    -- Add the verdict line right after the original whisper
+    C_Timer.After(0, function()
+        self:AddMessage("  " .. summary, info.r, info.g, info.b)
+    end)
+
+    return false  -- do not suppress the original message
 end)
 
 -- ============================================================

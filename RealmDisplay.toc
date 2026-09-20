@@ -1,7 +1,7 @@
 ## Interface: 120100
 ## Title: Realm Display
 ## Notes: Check whether a customer's realm is compatible with yours for crafting orders. Tells you at a glance if a personal order will work or if a guild order is required.
-## Version: 0.0.1
+## Version: @project-version@
 ## Author: Akram-Hafaiedh (Mugiwara bøy)
 ## SavedVariables: RealmDisplayDB
 ## OptionalDeps: LibStub, LibDBIcon-1.0, CallbackHandler-1.0, LibDataBroker-1.1

@@ -21,12 +21,12 @@ function Create-Icon($name, $drawAction) {
     }
 
     $bmp = New-Object System.Drawing.Bitmap(32, 32)
-    $g   = [System.Drawing.Graphics]::FromImage($bmp)
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
     $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
     $g.Clear([System.Drawing.Color]::Transparent)
 
     $whiteBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
-    $whitePen   = New-Object System.Drawing.Pen([System.Drawing.Color]::White)
+    $whitePen = New-Object System.Drawing.Pen([System.Drawing.Color]::White)
 
     $drawAction.Invoke($g, $whiteBrush, $whitePen)
 
@@ -44,9 +44,9 @@ function Create-Icon($name, $drawAction) {
 # ----------------------------------------------------------------
 Create-Icon "chevron" {
     param($g, $brush, $pen)
-    $pen.Width    = 4
+    $pen.Width = 4
     $pen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
-    $pen.EndCap   = [System.Drawing.Drawing2D.LineCap]::Round
+    $pen.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
     $pen.LineJoin = [System.Drawing.Drawing2D.LineJoin]::Round
 
     $points = @(
@@ -62,12 +62,29 @@ Create-Icon "chevron" {
 # ----------------------------------------------------------------
 Create-Icon "close" {
     param($g, $brush, $pen)
-    $pen.Width    = 3
+    $pen.Width = 3
     $pen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
-    $pen.EndCap   = [System.Drawing.Drawing2D.LineCap]::Round
+    $pen.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
 
     $g.DrawLine($pen, 9, 9, 23, 23)
     $g.DrawLine($pen, 23, 9, 9, 23)
 }
 
 Write-Host "`nDone." -ForegroundColor Cyan
+
+
+# ----------------------------------------------------------------
+# search.png — magnifying glass for the realm search input
+# ----------------------------------------------------------------
+Create-Icon "search" {
+    param($g, $brush, $pen)
+    $pen.Width = 3
+    $pen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
+    $pen.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
+
+    # Circle (lens)
+    $g.DrawEllipse($pen, 6, 6, 14, 14)
+
+    # Handle
+    $g.DrawLine($pen, 18, 18, 25, 25)
+}
