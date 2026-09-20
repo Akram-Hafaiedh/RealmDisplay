@@ -1,5 +1,18 @@
 # Changelog
 
+
+## 0.0.4 — 2026-09-20
+
+- **Guild auto-detection** — whisperers and targets who are in your guild are detected automatically; no more manual checkbox
+- Guild verdict is now green (positive outcome): "GUILD ORDER AVAILABLE"
+- Inline whisper verdict now displays under the whisper in the correct chat frame
+- Notify checkbox and `/rd notify` command stay in sync
+- Scale-aware window position — panel appears in the same spot across characters with different UI scales
+- Fixed: `/rd` commands no longer error when typed before addon finishes loading
+- Fixed: chat hook no longer throws on modern clients
+- Added debug commands: `/rd rostertest`, `/rd rosterdump`, `/rd rosterrebuild`, `/rd posdebug`
+
+
 ## 0.0.3 — 2026-09-20
 
 - Two-row button layout for better readability
