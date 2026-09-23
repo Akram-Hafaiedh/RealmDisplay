@@ -1,9 +1,31 @@
 # Changelog
 
+## Unreleased
 
-## 0.0.5 — 2026-09-23
+### Changed
 
-- Fixed: inline whisper verdict was spamming duplicate lines and leaking into the wrong chat frame (e.g. General) — it was hooking `OnEvent` on every chat window instead of filtering the message once. Now uses `ChatFrame_AddMessageEventFilter`, so it fires exactly once per whisper and appends to that message directly.
+- **Chat-first design** — RealmDisplay is being redesigned around inline chat compatibility annotations instead of a standalone compatibility panel.
+- **Inline player verdicts** — compatibility information will be displayed directly alongside the player who sent the message.
+- **Cross-channel compatibility** — annotations will support whispers, Trade, public channels, party, raid, instance, and other supported chat types.
+- **Compact annotations** — verdicts will use a small symbol and/or short text instead of generating a separate verdict message.
+- **Settings replaces the main UI** — the current compatibility panel will be replaced by a dedicated settings/options page.
+- **Configurable annotation position** — users will be able to place the verdict before or after the player name.
+- **Configurable annotation style** — users will be able to choose between symbol-only, short text, or symbol + short text.
+- **Configurable chat channels** — annotations can be enabled or disabled independently for supported chat types.
+- **Configurable verdict visibility** — users can choose which compatibility states are displayed.
+- **Optional Guild annotations** — Guild chat will be configurable rather than being assumed as a primary use case.
+- **Preserved compatibility engine** — connected-realm detection and automatic guild detection remain the foundation of the addon.
+- **Reduced UI dependency** — the addon will no longer require opening a persistent panel to determine a player's crafting compatibility.
+
+### Planned
+
+- Replace the current whisper-specific chat handling with a general chat message filtering system.
+- Preserve Blizzard player hyperlinks and existing chat formatting.
+- Add compatibility result caching for frequent chat lookups.
+- Add optional tooltips/details for compatibility annotations.
+- Rework slash commands around the chat-first workflow.
+- Remove obsolete components of the current compatibility panel.
+- Update documentation and screenshots for the new workflow.
 
 ## 0.0.4 — 2026-09-20
 
@@ -15,7 +37,6 @@
 - Fixed: `/rd` commands no longer error when typed before addon finishes loading
 - Fixed: chat hook no longer throws on modern clients
 - Added debug commands: `/rd rostertest`, `/rd rosterdump`, `/rd rosterrebuild`, `/rd posdebug`
-
 
 ## 0.0.3 — 2026-09-20
 

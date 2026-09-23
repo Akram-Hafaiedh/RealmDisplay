@@ -1,67 +1,281 @@
-# TODOs
+# TODO
 
-Planned features and improvements for RealmDisplay. Nothing here is committed to a release — this is a parking lot for ideas worth revisiting.
+## Next Major Update — Chat-First Compatibility System
 
-Order is loosely by priority, not by effort.
+The current compatibility panel will no longer be the primary user interface.
 
----
+RealmDisplay will become a chat-first addon that automatically displays a compact crafting-order compatibility verdict next to players in chat.
 
-## Tier 1 — Quality of life
-
-- [ ] **Whisper-triggered auto-focus** — bring the panel to front when a whisper arrives while it's hidden. Configurable toggle, default off.
-- [ ] **Ping display in footer** — was cut during the v0.0.x redesign. Add back as a small `(45ms)` suffix in the footer, color-coded green/yellow/red.
-- [ ] **Copy verdict button** — separate from the click-to-copy verdict box. Some users prefer an explicit button.
-- [ ] **Right-click minimap** to toggle notify, left-click to toggle panel — reduces reliance on slash commands.
-- [ ] **Panel opacity slider** — the current `C_BG[4] = 0.92` is hardcoded. Expose a slider in a small settings panel.
-- [ ] **Realm input autocomplete** — as you type, show a dropdown of matching realms from (a) your connected cluster and (b) a recently-seen-realms cache built from whispers and targets. Tab or click to accept. Does **not** cover all realms — see "Rejected" for why.
-- [ ] **"Realm Check" on player unit context menu** — right-click a player (target, raid frame, party frame) → "Realm Check" → fills the panel with their realm and guild status. Uses the unit popup menu API, no taint risk.
-
-## Tier 2 — Expand the use case
-
-- [ ] **BNet whisper support** — `CHAT_MSG_BN_WHISPER` currently ignored. BNet friends may be on any realm, but the whisper carries no realm info, so we'd need a name-to-realm lookup cache built from `/who` or guild roster.
-- [ ] **Faction check** — personal orders are cross-faction in modern retail, but guild orders require same-faction guild. Add faction to the verdict when detectable.
-- [ ] **Tooltip on chat name hyperlinks** — hovering a player name in chat shows a verdict line in their tooltip. Risky — potential taint issues with `SetItemRef`.
-- [ ] **Saved customer history** — remember the last N whisperers/targets for quick re-check. Useful if a customer comes back later.
-- [ ] **Slash command aliases** — `/rd c <realm>` short form for `/rd check`.
-- [ ] **"Realm Check" on chat player links** — right-click a player name in chat → "Realm Check". Feasible via `ChatFrame_OnHyperlinkShow`, but risky: chat hyperlink hooks are a known taint source and can break the default right-click menu if they fail. Try the unit popup version first; only pursue this if users ask.
-
-## Tier 3 — Polish & infrastructure
-
-- [ ] **Minimal settings panel** — probably use Blizzard's `Settings` API rather than a custom frame. Just: theme toggle, ping on/off, notify default, panel opacity.
-- [ ] **Localization framework** — `Locales/enUS.lua` etc. for UI strings. Only worth it when non-English users ask.
-- [ ] **LibSharedMedia font support** — allow users to pick the panel font from their LSM-registered fonts. Low value unless requested.
-- [ ] **CurseForge project icon** — 256×256 PNG derived from a Blizzard crafting icon. Needed for a polished CF page.
-- [ ] **Screenshot folder** — a `docs/` folder with 2-3 PNGs of the panel in different states, referenced from the README.
-
-## Tier 4 — Big if ever
-
-- [ ] **Browse-all dropdown** — we removed the static realm database in favor of search-only. If users complain, we could bring it back via a lightweight, auto-updated name list.
-- [ ] **External data sync** — companion desktop app that writes `RealmData.lua` on update. Overkill; only if the search-only model fails.
-- [ ] **Crafting order integration** — inspect an open crafting order window and show a verdict for the customer automatically. Requires `C_CraftingOrders` API, which is fragile between patches.
+The existing realm and guild detection logic remains the foundation of the addon, but the presentation layer will move from a standalone panel to inline chat annotations.
 
 ---
 
-## Rejected / won't do
+## 1. Chat Annotations
 
-Ideas that were considered and intentionally dropped. Documented so we don't relitigate them later.
+### Core
 
-- ❌ **Character/gold tracking** — different addon's problem.
-- ❌ **Theme toggle in main panel** — too much surface area; if added, it goes in a settings panel.
-- ❌ **Manual guild checkbox** — replaced by auto-detection via the roster cache. The checkbox forced users to confirm something the addon can determine itself.
-- ❌ **Static realm database** — needed manual regeneration on Windows-only scripts. Replaced by `GetAutoCompleteRealms()`.
-- ❌ **LibRealmInfo dependency** — the library is 6+ years stale. `GetAutoCompleteRealms()` is live and accurate.
-- ❌ **Custom TTF fonts** — SystemFont_* matches the AlterArena/WeeklyKnowledge look and needs no shipping weight.
-- ❌ **Full realm autocomplete** — would require shipping a static list of ~1,100 realm names. We removed the static database in favor of `GetAutoCompleteRealms()` (live, always accurate, but scoped to the player's own cluster). Autocomplete is therefore limited to the cluster + a local recent-realms cache. If users complain, revisit with a lightweight, rarely-updated name list.
+- [ ] Replace the current standalone whisper verdict system with inline chat annotations.
+- [ ] Use WoW chat message filters to modify messages before they are displayed.
+- [ ] Detect the sender's character name and realm from each supported chat message.
+- [ ] Determine the sender's crafting-order compatibility.
+- [ ] Add the compatibility annotation next to the sender's name.
+- [ ] Preserve the original player name hyperlink.
+- [ ] Preserve normal chat formatting and message content.
+- [ ] Avoid creating additional chat lines for verdicts.
+
+### Supported Chat Types
+
+- [ ] Whisper
+- [ ] Trade
+- [ ] General / public channels
+- [ ] Say
+- [ ] Yell
+- [ ] Party
+- [ ] Party Leader
+- [ ] Raid
+- [ ] Raid Leader
+- [ ] Instance / Instance Leader
+- [ ] Guild
+- [ ] Other relevant chat events where sender information is available
+
+Guild chat should be configurable and disabled by default if there is little practical benefit from annotating guild members.
 
 ---
 
-## How to use this file
+## 2. Verdict Display
 
-When an idea strikes, add it here under the right tier. When it's time to build something:
+The annotation should be compact enough to work naturally in busy chat channels.
 
-1. Move the item to the top of its tier (or promote it if it feels bigger).
-2. Cut a branch named after it (e.g. `feat/whisper-autofocus`).
-3. Build it, test it, ship it as the next version bump.
-4. Check the box or delete the line — no history needed, the CHANGELOG records what shipped.
+### Verdicts
 
-Don't let this list grow into a design doc. If an item needs more than 2-3 lines to explain, it deserves its own file or its own conversation.
+- [ ] Personal order available
+- [ ] Guild order available
+- [ ] Incompatible
+- [ ] Unknown / unable to determine
+
+### Display Examples
+
+Preferred compact format:
+
+    Player-Realm [✓]: Can you craft this?
+
+Alternative:
+
+    [✓] Player-Realm: Can you craft this?
+
+Alternative short-text format:
+
+    Player-Realm [Personal]: Can you craft this?
+
+### Customization
+
+- [ ] Allow the annotation to appear before the player name.
+- [ ] Allow the annotation to appear after the player name.
+- [ ] Symbol only
+- [ ] Short text
+- [ ] Symbol + short text
+- [ ] Allow users to choose which verdicts are displayed.
+- [ ] Allow customization of the short verdict text.
+- [ ] Keep the default presentation minimal to avoid chat clutter.
+
+---
+
+## 3. Verdict Details
+
+The compact annotation should provide enough information at a glance while allowing more details when needed.
+
+### Personal
+
+    Same connected realm.
+    Personal crafting order available.
+
+### Guild
+
+    Different realm.
+    Player is a member of your guild.
+    Guild crafting order available.
+
+### Incompatible
+
+    Different realm.
+    Player is not in your guild.
+    Crafting order is not available.
+
+### Unknown
+
+    The player's realm or guild status could not be determined.
+
+### Details Interaction
+
+- [ ] Add an optional tooltip when hovering the annotation.
+- [ ] Show the player's detected realm.
+- [ ] Show the detected compatibility reason.
+- [ ] Show whether the player was detected as a guild member.
+- [ ] Consider a manual detailed player check from the annotation.
+
+---
+
+## 4. Settings / Options Page
+
+The current main compatibility panel will be replaced by a dedicated settings page.
+
+The settings page becomes the main configuration interface for RealmDisplay.
+
+### General
+
+- [ ] Enable / disable chat annotations.
+- [ ] Enable / disable the minimap button.
+- [ ] Reset addon settings.
+- [ ] Reset annotation settings to defaults.
+
+### Chat Channels
+
+Allow annotations to be independently enabled or disabled for each supported chat type.
+
+- [ ] Whisper
+- [ ] Trade
+- [ ] General / public channels
+- [ ] Say
+- [ ] Yell
+- [ ] Party
+- [ ] Raid
+- [ ] Instance
+- [ ] Guild
+- [ ] Other supported channels
+
+Suggested defaults:
+
+- Whisper: enabled
+- Trade: enabled
+- Public channels: enabled
+- Party: enabled
+- Raid: enabled
+- Instance: enabled
+- Guild: disabled
+
+---
+
+## 5. Annotation Customization
+
+### Position
+
+- [ ] Before player name
+- [ ] After player name
+
+### Style
+
+- [ ] Symbol only
+- [ ] Short text
+- [ ] Symbol + short text
+
+### Verdict Visibility
+
+- [ ] Show Personal
+- [ ] Show Guild
+- [ ] Show Incompatible
+- [ ] Show Unknown
+
+### Optional Customization
+
+- [ ] Custom symbol for Personal
+- [ ] Custom symbol for Guild
+- [ ] Custom symbol for Incompatible
+- [ ] Custom symbol for Unknown
+- [ ] Custom short text for each verdict
+
+---
+
+## 6. Compatibility / Detection
+
+Keep the existing compatibility engine and adapt it for frequent chat lookups.
+
+- [ ] Keep Blizzard live connected-realm detection.
+- [ ] Keep automatic guild membership detection.
+- [ ] Add player/realm compatibility caching.
+- [ ] Avoid repeatedly rebuilding the guild roster.
+- [ ] Handle senders without an explicit realm safely.
+- [ ] Handle cross-realm names correctly.
+- [ ] Handle duplicate character names from different realms.
+- [ ] Handle chat events where realm information is unavailable.
+- [ ] Make detection consistent across all supported chat types.
+
+---
+
+## 7. Chat Performance
+
+Because chat annotations may process many messages, the system should avoid unnecessary work.
+
+- [ ] Cache compatibility results.
+- [ ] Avoid performing expensive realm/guild checks for every message when the result is already known.
+- [ ] Avoid modifying messages that cannot provide a usable sender.
+- [ ] Avoid adding annotations when the feature is disabled for that chat type.
+- [ ] Ensure filters do not interfere with Blizzard's normal chat handling.
+- [ ] Test with high-volume Trade and General chat.
+
+---
+
+## 8. Old Main UI Cleanup
+
+The existing large compatibility panel becomes obsolete once the settings page and chat annotations are complete.
+
+- [ ] Remove the current main compatibility panel.
+- [ ] Remove realm search UI from the main panel.
+- [ ] Remove customer realm manual-entry workflow.
+- [ ] Remove whisper-specific notification UI.
+- [ ] Remove redundant verdict display code.
+- [ ] Remove obsolete panel positioning code.
+- [ ] Keep only UI components that are still useful for configuration or detailed inspection.
+
+---
+
+## 9. Slash Commands
+
+Rework `/rd` around the new chat-first design.
+
+Possible commands:
+
+- [ ] `/rd` — open settings
+- [ ] `/rd config` — open settings
+- [ ] `/rd toggle` — enable / disable chat annotations
+- [ ] `/rd check <player>` — manually check a player
+- [ ] `/rd reset` — reset settings
+- [ ] `/rd minimap` — toggle minimap button
+- [ ] `/rd debug` — debug information
+
+Review and remove commands that only existed for the old main panel.
+
+---
+
+## 10. Future Crafting Intelligence
+
+Potential future feature after the basic annotation system is stable.
+
+- [ ] Detect messages that appear to be crafting requests.
+- [ ] Only show compatibility annotations on potentially relevant crafting messages.
+- [ ] Detect common crafting-request wording.
+- [ ] Detect profession names and crafting-related terms.
+- [ ] Allow users to enable/disable crafting-request filtering.
+
+This should remain optional. The initial implementation should annotate based on the chat sender without attempting to interpret message intent.
+
+---
+
+## 11. Future Manual Interaction
+
+- [ ] Manual "check player" action from chat.
+- [ ] Right-click/context-menu integration where safely supported.
+- [ ] Clickable annotation for detailed compatibility information.
+- [ ] Optional detailed compatibility popup.
+- [ ] Avoid bringing back the old persistent compatibility panel.
+
+---
+
+## 12. Documentation
+
+- [ ] Update README for the new chat-first workflow.
+- [ ] Update usage instructions.
+- [ ] Update slash command documentation.
+- [ ] Document annotation symbols.
+- [ ] Document settings.
+- [ ] Add screenshots of annotated chat.
+- [ ] Add screenshots of the new settings page.
