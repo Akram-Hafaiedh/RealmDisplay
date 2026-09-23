@@ -748,15 +748,16 @@ local function HandleWhisper(text, sender)
 end
 -- ============================================================
 -- 10b. INLINE WHISPER VERDICT
---      Hooks each chat frame's OnEvent so the verdict appears
---      right after the whisper, in the same chat frame.
+--      Uses a chat message filter so the verdict is appended to
+--      the whisper message itself. This runs exactly ONCE per
+--      incoming whisper (unlike hooking OnEvent on every chat
+--      frame, which fires once per frame that displays whispers
+--      and caused duplicate/misplaced verdicts).
 -- ============================================================
-local function WhisperVerdictHook(self, event, ...)
-    if event ~= "CHAT_MSG_WHISPER" then return end
-    if not db or not db.announceOnWhisper then return end
-
-    local text, sender = ...
-    if not sender then return end
+local function WhisperVerdictFilter(self, event, text, sender, ...)
+    if not db or not db.announceOnWhisper or not sender then
+        return false
+    end
 
     local name, realm = sender:match("^(.+)%-(.+)$")
     if not name then
@@ -767,20 +768,23 @@ local function WhisperVerdictHook(self, event, ...)
 
     local inGuild = IsInMyGuild(sender)
     local v = GetVerdict(realm, inGuild)
-    if not v then return end
+    if not v then return false end
 
     local info    = VERDICT[v]
     local summary = WHISPER_MESSAGES[v]
+    local colored = string.format("|cff%02x%02x%02x%s|r",
+        info.r * 255, info.g * 255, info.b * 255, summary)
 
-    self:AddMessage("  " .. summary, info.r, info.g, info.b)
+    -- Append to the whisper itself, on its own line. Since this is a
+    -- filter (not a per-frame hook), it modifies the message exactly
+    -- once, and it will naturally show up in whatever frame(s) that
+    -- message was already headed to -- never a wrong/extra window.
+    text = text .. "\n  " .. colored
+
+    return false, text, sender, ...
 end
 
-for i = 1, NUM_CHAT_WINDOWS do
-    local cf = _G["ChatFrame" .. i]
-    if cf then
-        cf:HookScript("OnEvent", WhisperVerdictHook)
-    end
-end
+ChatFrame_AddMessageEventFilter("CHAT_MSG_WHISPER", WhisperVerdictFilter)
 
 -- ============================================================
 -- 11. EVENTS

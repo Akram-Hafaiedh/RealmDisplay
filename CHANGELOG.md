@@ -1,6 +1,10 @@
 # Changelog
 
 
+## 0.0.5 — 2026-09-23
+
+- Fixed: inline whisper verdict was spamming duplicate lines and leaking into the wrong chat frame (e.g. General) — it was hooking `OnEvent` on every chat window instead of filtering the message once. Now uses `ChatFrame_AddMessageEventFilter`, so it fires exactly once per whisper and appends to that message directly.
+
 ## 0.0.4 — 2026-09-20
 
 - **Guild auto-detection** — whisperers and targets who are in your guild are detected automatically; no more manual checkbox
