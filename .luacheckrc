@@ -50,6 +50,9 @@ read_globals = {
     -- Menu API (retail, 10.1.5+)
     "Menu",
 
+    -- Settings API (retail 10.0+)
+    "Settings",
+
     -- Minimap libs (LibStub-based, optional at runtime)
     "LibStub",
 
@@ -57,6 +60,10 @@ read_globals = {
     "SlashCmdList",
     "hooksecurefunc",
     "C_Timer",
+    "strtrim",
+    "wipe",
+    "UnitGUID",
+    "UnitName",
 }
 
 -- Generated/template-populated globals (e.g. RealmDisplayNotifyCBText

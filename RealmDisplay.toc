@@ -2,7 +2,7 @@
 ## Title: Realm Display
 ## Notes: Check whether a customer's realm is compatible with yours for crafting orders. Tells you at a glance if a personal order will work or if a guild order is required.
 ## Version: @project-version@
-## Author: Akram-Hafaiedh (Mugiwara bøy)
+## Author: Akram-Hafaiedh (Mugiwarabøy)
 ## SavedVariables: RealmDisplayDB
 ## OptionalDeps: LibStub, LibDBIcon-1.0, CallbackHandler-1.0, LibDataBroker-1.1
 
@@ -12,3 +12,4 @@ Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
 
 RealmDisplay.lua
+Settings.lua
