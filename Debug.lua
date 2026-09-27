@@ -396,8 +396,7 @@ local function EnsureDebugFrame()
         -- Height from text: approximate via GetNumLetters is unreliable; use font height * lines
         local text = logEdit:GetText() or ""
         local lines = 1
-        for _ in text:gmatch("
-") do lines = lines + 1 end
+        for _ in text:gmatch("\n") do lines = lines + 1 end
         local h = math.max(lines * 14 + 8, logScroll:GetHeight() or 100)
         logEdit:SetHeight(h)
         logChild:SetSize(w, h)
