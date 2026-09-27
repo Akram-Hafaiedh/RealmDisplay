@@ -1,85 +1,71 @@
 # RealmDisplay
 
-Short description
+Crafting-order compatibility, right in your chat.
+
+RealmDisplay annotates chat messages so you can see whether a player can take a **personal** crafting order or only a **guild** order (or neither), based on connected realms and guild membership.
 
 ## Features
 
-- Inline crafting compatibility in chat
-- Connected-realm detection
-- Guild membership detection
-- Personal crafting order detection
-- Guild crafting order detection
-- Cross-channel support
-- Configurable annotations
-- Settings/options
-- Minimap button
-- Slash commands
+- Inline compatibility annotations on chat messages
+- Connected-realm detection (live cluster)
+- Automatic guild membership detection
+- Verdicts: Personal · Guild · Incompatible · Unknown
+- Configurable position (before / after message)
+- Configurable style: symbol, short text, or both
+- Custom icon per verdict
+- Per-channel toggles
+- Settings panel + minimap button
+- Debug window and self-test (`/rd debug`, `/rd test`)
 
-## How It Works
+## How it works
 
-Example chat messages:
+| Verdict | Meaning |
+|---------|---------|
+| **Personal** | Same connected realm → personal order available |
+| **Guild** | Different realm, but in your guild → guild order available |
+| **Incompatible** | Different realm, not in guild |
+| **Unknown** | Realm/guild could not be determined |
 
-Player-Realm [✓]: Can you craft this?
+Default style is a compact symbol after the message. You can switch to text or symbol+text and pick icons for each verdict.
 
-Player-Realm [◆]: I can craft that for you.
+## Supported chat
 
-Player-Realm [×]: Can you craft this?
-
-Explain:
-
-✓ Personal Order Available
-◆ Guild Order Available
-× Incompatible
-? Unknown
-
-## Supported Chat
-
-- Whisper
-- Trade
-- General
-- Say
-- Yell
-- Party
-- Raid
-- Instance
-- Guild
+Whisper, Trade, Public channels, Say, Yell, Party, Raid, Instance, Guild, Officer  
+(Guild and Officer are off by default.)
 
 ## Configuration
 
-Explain the settings page:
+`/rd` or the minimap button opens settings:
 
 - Enable/disable annotations
-- Channel selection
-- Annotation position
-- Annotation style
-- Verdict visibility
-- Minimap
+- Annotation position and style
+- Symbols for each verdict
+- Which verdicts to show
+- Per-channel enable/disable
+- Minimap button
 
-## Compatibility Detection
+## Slash commands
 
-Explain connected realms + guild detection.
-
-## Slash Commands
-
-/rd
-/rd config
-/rd toggle
-/rd check <player>
-/rd reset
-/rd minimap
-/rd debug
+| Command | Description |
+|---------|-------------|
+| `/rd` / `/rd config` | Open settings |
+| `/rd toggle` | Enable/disable annotations |
+| `/rd status` | Show current settings |
+| `/rd check <Name-Realm>` | Manual compatibility check |
+| `/rd clearcache` | Clear detection caches |
+| `/rd minimap` | Toggle minimap button |
+| `/rd debug` | Open debug window |
+| `/rd test [player]` | Run self-test cases |
 
 ## Installation
 
-CurseForge / WoW addon installation instructions
+Install via CurseForge, or copy the `RealmDisplay` folder into `Interface\AddOns`.
 
 ## Compatibility
 
-World of Warcraft Retail
-Midnight 12.1.x
-
-## Development
-
-Repository / contribution information
+- World of Warcraft **Retail**
+- Midnight **12.1.x** (Interface `120100`)
 
 ## License
+
+MIT

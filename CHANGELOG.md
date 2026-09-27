@@ -1,31 +1,36 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 — 2026-09-27
+
+Chat-first redesign. Compatibility is shown as compact annotations on chat messages instead of a standalone panel.
+
+### Added
+
+- Inline crafting compatibility annotations across supported chat channels
+- Configurable annotation position (before / after message)
+- Configurable annotation style: symbol, short text, or both
+- Custom icon presets per verdict (Personal, Guild, Incompatible, Unknown)
+- Per-channel toggles (Whisper, Trade, Public, Say, Yell, Party, Raid, Instance, Guild, Officer)
+- Verdict visibility toggles for each state
+- Premium settings panel with toggles, segmented controls, and symbol dropdowns
+- Debug window with pipeline checklist, log, and copy support (`/rd debug`)
+- Self-test harness using live realm/guild APIs plus synthetic cases (`/rd test`)
+- Compatibility result caching for frequent chat lookups
+- Shared styled UI helpers (close button, scroll frames)
 
 ### Changed
 
-- **Chat-first design** — RealmDisplay is being redesigned around inline chat compatibility annotations instead of a standalone compatibility panel.
-- **Inline player verdicts** — compatibility information will be displayed directly alongside the player who sent the message.
-- **Cross-channel compatibility** — annotations will support whispers, Trade, public channels, party, raid, instance, and other supported chat types.
-- **Compact annotations** — verdicts will use a small symbol and/or short text instead of generating a separate verdict message.
-- **Settings replaces the main UI** — the current compatibility panel will be replaced by a dedicated settings/options page.
-- **Configurable annotation position** — users will be able to place the verdict before or after the player name.
-- **Configurable annotation style** — users will be able to choose between symbol-only, short text, or symbol + short text.
-- **Configurable chat channels** — annotations can be enabled or disabled independently for supported chat types.
-- **Configurable verdict visibility** — users can choose which compatibility states are displayed.
-- **Optional Guild annotations** — Guild chat will be configurable rather than being assumed as a primary use case.
-- **Preserved compatibility engine** — connected-realm detection and automatic guild detection remain the foundation of the addon.
-- **Reduced UI dependency** — the addon will no longer require opening a persistent panel to determine a player's crafting compatibility.
+- Presentation is chat-first; the old main compatibility panel is removed
+- Guild and Officer channels are off by default
+- Default annotation style is symbol-only after the message
+- Slash commands reworked around settings, toggle, check, debug, and test
+- TOC Notes and Interface version aligned with Midnight 12.1.x (`120100`)
 
-### Planned
+### Fixed
 
-- Replace the current whisper-specific chat handling with a general chat message filtering system.
-- Preserve Blizzard player hyperlinks and existing chat formatting.
-- Add compatibility result caching for frequent chat lookups.
-- Add optional tooltips/details for compatibility annotations.
-- Rework slash commands around the chat-first workflow.
-- Remove obsolete components of the current compatibility panel.
-- Update documentation and screenshots for the new workflow.
+- Annotations are applied to the message body only so Blizzard player hyperlinks stay intact
+- Own messages are skipped
+- Guild roster and compatibility caches invalidate on guild/login changes
 
 ## 0.0.4 — 2026-09-20
 

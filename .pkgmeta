@@ -10,3 +10,4 @@ ignore:
   - .gitignore
   - .vscode
   - "*.ps1"
+  - Media/screenshots
